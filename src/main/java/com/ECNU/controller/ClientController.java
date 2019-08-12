@@ -4,13 +4,8 @@ import com.ECNU.bean.*;
 import com.ECNU.service.ClientService;
 import com.ECNU.util.Cors;
 import com.ECNU.util.IPUtil;
-import lombok.Data;
-import org.dom4j.Document;
 import org.dom4j.DocumentException;
-import org.dom4j.Element;
-import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -21,20 +16,16 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
 @RestController
 @CrossOrigin
 @RequestMapping("/client")
-@Data
-public class ClientController extends Cors {
+public class ClientController extends Cors{
     @Autowired
     ClientService clientService;
 
-    private List<Phenomenon> phenomenonList = new LinkedList<>();
-    private List<Shape> shapeList = new LinkedList<>();
     @CrossOrigin
     @RequestMapping("/upload")
     public String upload(@RequestParam("uploadedFiles") MultipartFile file) throws IOException {
@@ -56,22 +47,58 @@ public class ClientController extends Cors {
     }
 
     @CrossOrigin
-    @GetMapping("/loadProjectXML")
-    public Object loadProjectXML() throws DocumentException{
+    @GetMapping("/getPhenomenonList")
+    public Object getPhenomenonList() throws DocumentException{
         ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = servletRequestAttributes.getRequest();
         String ip = IPUtil.getIpAddress(request);
         ip = ip.replace(':','-');
+        String path = "asset/" + ip + "/" + "PackageRouterProject.xml";
+        return clientService.getPhenomenonList(path);
+    }
 
-        if(phenomenonList.size() == 0){
-            clientService.loadProjectXML("asset/" + ip + "/" + "PackageRouterProject.xml");
-        }
-        for(int i = 0;i < clientService.getSubProblemDiagrams().size();i++){
-            ProblemDiagram problemDiagram = clientService.getSubProblemDiagrams().get(i);
-            for(int j = 0;j < problemDiagram.getPhenomenon().size();j++){
-                phenomenonList.add((Phenomenon) problemDiagram.getPhenomenon().get(j));
-            }
-        }
-        return phenomenonList;
+    @CrossOrigin
+    @GetMapping("/getDiagramCount")
+    public Object getDiagramCount() throws DocumentException {
+        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+        HttpServletRequest request = servletRequestAttributes.getRequest();
+        String ip = IPUtil.getIpAddress(request);
+        ip = ip.replace(':','-');
+        String path = "asset/" + ip + "/" + "PackageRouterProject.xml";
+        return clientService.getDiagramCount(path);
+    }
+
+
+    @CrossOrigin
+    @GetMapping("/getRectList")
+    public Object getRectList(int index) throws DocumentException{
+        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+        HttpServletRequest request = servletRequestAttributes.getRequest();
+        String ip = IPUtil.getIpAddress(request);
+        ip = ip.replace(':','-');
+        String path = "asset/" + ip + "/" + "PackageRouterProject.xml";
+        return clientService.getRectList(path, index);
+    }
+
+    @CrossOrigin
+    @GetMapping("/getLineList")
+    public Object getLineList(int index) throws DocumentException{
+        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+        HttpServletRequest request = servletRequestAttributes.getRequest();
+        String ip = IPUtil.getIpAddress(request);
+        ip = ip.replace(':','-');
+        String path = "asset/" + ip + "/" + "PackageRouterProject.xml";
+        return clientService.getLineList(path, index);
+    }
+
+    @CrossOrigin
+    @GetMapping("/getOvalList")
+    public Object getOvalList(int index) throws DocumentException{
+        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+        HttpServletRequest request = servletRequestAttributes.getRequest();
+        String ip = IPUtil.getIpAddress(request);
+        ip = ip.replace(':','-');
+        String path = "asset/" + ip + "/" + "PackageRouterProject.xml";
+        return clientService.getOvalList(path, index);
     }
 }

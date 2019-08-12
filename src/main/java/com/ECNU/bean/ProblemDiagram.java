@@ -304,6 +304,15 @@ public class ProblemDiagram implements Serializable {
         this.components.add(component);
     }
 
+    public LinkedList<Rect> getRect(){
+        LinkedList ll = new LinkedList();
+        for(int i = 0;i < components.size();i++){
+            Shape shape = (Shape) components.get(i);
+            if(shape.getShape() == 0) ll.add((Rect) shape);
+        }
+        return ll;
+    }
+
     public LinkedList getPhenomenon() {
         LinkedList ll = new LinkedList();
         for (int i = 0; i <= this.components.size() - 1; i++) {
