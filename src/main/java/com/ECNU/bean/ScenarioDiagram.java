@@ -377,7 +377,7 @@ public class ScenarioDiagram {
             for(int i = 0;i < replaces.size();i++){
                 Scenario replace = scenarios.get(replaces.get(i));
                 scenarios.remove(replace);
-                LinkedList<Integer> dians = replace.getTurning();
+                LinkedList<String> dians = replace.getTurning();
                 LinkedList newDians = new LinkedList();
                 newDians.add(dians.get(2));
                 newDians.add(dians.get(3));

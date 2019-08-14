@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<diagram>
+  <title>SG2-correct routing</title>
+  <data>
+    <IntNode>
+      <ActIntNode>
+        <Element type="ints" middleXY="45,544" number="6" state="0" name="int"/>
+        <Element type="ints" middleXY="279,545" number="7" state="0" name="int"/>
+        <Element type="ints" middleXY="159,89" number="8" state="0" name="int"/>
+        <Element type="ints" middleXY="159,158" number="9" state="0" name="int"/>
+        <Element type="ints" middleXY="159,233" number="10" state="0" name="int"/>
+        <Element type="ints" middleXY="159,649" number="11" state="0" name="int"/>
+        <Element type="ints" middleXY="159,384" number="12" state="0" name="int"/>
+        <Element type="ints" middleXY="159,310" number="22" state="0" name="int"/>
+        <Element type="ints" middleXY="159,446" number="28" state="0" name="int"/>
+      </ActIntNode>
+      <ExpectIntNode>
+        <Element type="ints" middleXY="420,649" number="17" state="1" name="int"/>
+        <Element type="ints" middleXY="420,310" number="18" state="1" name="int"/>
+        <Element type="ints" middleXY="420,233" number="19" state="1" name="int"/>
+      </ExpectIntNode>
+      <StartNode>
+        <Element type="startNode" middleXY="159,28" number="6" state="2" name="int"/>
+        <Element type="startNode" middleXY="420,150" number="6" state="2" name="int"/>
+      </StartNode>
+      <EndNode>
+        <Element type="endNode" middleXY="159,724" number="6" state="3" name="int"/>
+        <Element type="endNode" middleXY="420,721" number="6" state="3" name="int"/>
+      </EndNode>
+      <DecisionNode>
+        <Element type="decisionNode" middleXY="159,506" number="6" state="4" name="int" text="&lt;&lt;location&gt;&gt;" to1XY="45,544" to1Num="7" to1State="0" to1Name="int" condition1="&lt;&lt;left&gt;&gt;" to2XY="279,545" to2Num="6" to2State="0" condition2="&lt;&lt;right&gt;&gt;"/>
+      </DecisionNode>
+      <MergeNode>
+        <Element type="mergeNode" middleXY="156,565" number="6" state="5" name="int" toNum = "11" toXY="159,649" toState="0" toName = "int"/>
+      </MergeNode>
+      <BranchNode/>
+    </IntNode>
+    <LineNode>
+      <ActCause>
+        <Element type="linkedlines" turnings="" fromXY="159,233" fromNum="10" fromState="0" fromName="int" toXY="420,233" toNum="19" toState="1" toName="int" state="0"/>
+        <Element type="linkedlines" turnings="" fromXY="159,649" fromNum="11" fromState="0" fromName="int" toXY="420,649" toNum="17" toState="1" toName="int" state="0"/>
+        <Element type="linkedlines" turnings="" fromXY="159,310" fromNum="22" fromState="0" fromName="int" toXY="420,310" toNum="18" toState="1" toName="int" state="0"/>
+      </ActCause>
+      <ActOrder>
+        <Element type="linkedlines" turnings="" fromXY="159,89" fromNum="8" fromState="0" fromName="int" toXY="159,158" toNum="9" toState="0" toName="int" state="1"/>
+        <Element type="linkedlines" turnings="" fromXY="159,28" fromNum="6" fromState="2" fromName="int" toXY="159,89" toNum="8" toState="0" toName="int" state="1"/>
+        <Element type="linkedlines" turnings="" fromXY="159,158" fromNum="9" fromState="0" fromName="int" toXY="159,233" toNum="10" toState="0" toName="int" state="1"/>
+        <Element type="linkedlines" turnings="" fromXY="159,506" fromNum="6" fromState="4" fromName="int" toXY="45,544" toNum="6" toState="0" toName="int" state="1"/>
+        <Element type="linkedlines" turnings="" fromXY="159,506" fromNum="6" fromState="4" fromName="int" toXY="279,545" toNum="7" toState="0" toName="int" state="1"/>
+        <Element type="linkedlines" turnings="" fromXY="45,544" fromNum="6" fromState="0" fromName="int" toXY="159,573" toNum="6" toState="5" toName="int" state="1"/>
+        <Element type="linkedlines" turnings="" fromXY="279,545" fromNum="7" fromState="0" fromName="int" toXY="159,573" toNum="6" toState="5" toName="int" state="1"/>
+        <Element type="linkedlines" turnings="" fromXY="159,573" fromNum="6" fromState="5" fromName="int" toXY="159,649" toNum="11" toState="0" toName="int" state="1"/>
+        <Element type="linkedlines" turnings="" fromXY="159,649" fromNum="11" fromState="0" fromName="int" toXY="159,724" toNum="6" toState="3" toName="int" state="1"/>
+        <Element type="linkedlines" turnings="" fromXY="159,233" fromNum="10" fromState="0" fromName="int" toXY="159,310" toNum="22" toState="0" toName="int" state="1"/>
+        <Element type="linkedlines" turnings="" fromXY="159,310" fromNum="22" fromState="0" fromName="int" toXY="159,384" toNum="12" toState="0" toName="int" state="1"/>
+        <Element type="linkedlines" turnings="" fromXY="159,446" fromNum="28" fromState="0" fromName="int" toXY="159,506" toNum="6" toState="4" toName="int" state="1"/>
+        <Element type="linkedlines" turnings="" fromXY="159,384" fromNum="12" fromState="0" fromName="int" toXY="159,446" toNum="28" toState="0" toName="int" state="1"/>
+      </ActOrder>
+      <Synchrony/>
+      <ExpectOrder>
+        <Element type="linkedlines" turnings="" fromXY="420,150" fromNum="6" fromState="2" fromName="int" toXY="420,233" toNum="19" toState="1" toName="int" state="3"/>
+        <Element type="linkedlines" turnings="" fromXY="420,233" fromNum="19" fromState="1" fromName="int" toXY="420,310" toNum="18" toState="1" toName="int" state="3"/>
+        <Element type="linkedlines" turnings="" fromXY="420,649" fromNum="17" fromState="1" fromName="int" toXY="420,721" toNum="6" toState="3" toName="int" state="3"/>
+        <Element type="linkedlines" turnings="" fromXY="420,310" fromNum="18" fromState="1" fromName="int" toXY="420,649" toNum="17" toState="1" toName="int" state="3"/>
+      </ExpectOrder>
+      <ExpectCause/>
+    </LineNode>
+  </data>
+</diagram>

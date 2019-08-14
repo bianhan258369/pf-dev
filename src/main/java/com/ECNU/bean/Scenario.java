@@ -7,7 +7,7 @@ import java.util.LinkedList;
 @Data
 public class Scenario implements Serializable, Cloneable{
     private int state;
-    private LinkedList<Integer> turning = new LinkedList<>();
+    private LinkedList<String> turning = new LinkedList<>();
     private Interaction from;
     private Interaction to;
     private int x1;
@@ -15,7 +15,7 @@ public class Scenario implements Serializable, Cloneable{
     private int y1;
     private int y2;
 
-    public Scenario(LinkedList<Integer> turning, int x1, int y1, int x2, int y2) {
+    public Scenario(LinkedList<String> turning, int x1, int y1, int x2, int y2) {
         this.x1 = x1;
         this.x2 = x2;
         this.y1 = y1;
@@ -23,7 +23,7 @@ public class Scenario implements Serializable, Cloneable{
         this.turning = turning;
     }
 
-    public Scenario(LinkedList<Integer> turning, Interaction from, Interaction to, int state) {
+    public Scenario(LinkedList<String> turning, Interaction from, Interaction to, int state) {
         this.turning = turning;
         this.state = state;
         this.from = from;
