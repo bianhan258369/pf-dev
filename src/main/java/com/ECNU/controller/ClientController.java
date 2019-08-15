@@ -34,7 +34,7 @@ public class ClientController extends Cors{
         File tmpFile = new File("asset/" + ip);
         if(!tmpFile.exists()) tmpFile.mkdir();
         filePath = "asset/" + ip + "/" + filePath; // 这是文件的保存路径，如果不设置就会保存到项目的根目录
-
+        System.out.println(filePath);
         BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(filePath));
 
         outputStream.write(file.getBytes());
@@ -209,5 +209,16 @@ public class ClientController extends Cors{
         ip = ip.replace(':','-');
         String path = "asset/" + ip + "/" + "PackageRouterProject.xml";
         return clientService.getScenarioDiagramByDomain(path, index, domainText);
+    }
+
+    @CrossOrigin
+    @GetMapping("/canAddConstraint")
+    public Object canAddConstraint(int index, String from, String cons, String to, int[] numbers) throws DocumentException, FileNotFoundException {
+        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+        HttpServletRequest request = servletRequestAttributes.getRequest();
+        String ip = IPUtil.getIpAddress(request);
+        ip = ip.replace(':','-');
+        String path = "asset/" + ip + "/" + "PackageRouterProject.xml";
+        return clientService.canAddConstraint(path, index, from, to, cons ,numbers);
     }
 }

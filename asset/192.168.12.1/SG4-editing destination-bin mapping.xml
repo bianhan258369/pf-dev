@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<diagram>
+  <title>SG4-editing destination-bin mapping</title>
+  <data>
+    <IntNode>
+      <ActIntNode>
+        <Element type="ints" middleXY="179,225" number="20" state="0" name="int"/>
+        <Element type="ints" middleXY="179,305" number="21" state="0" name="int"/>
+      </ActIntNode>
+      <ExpectIntNode>
+        <Element type="ints" middleXY="342,225" number="20" state="1" name="int"/>
+        <Element type="ints" middleXY="342,305" number="23" state="1" name="int"/>
+      </ExpectIntNode>
+      <StartNode>
+        <Element type="startNode" middleXY="179,158" number="22" state="2" name="int"/>
+        <Element type="startNode" middleXY="342,159" number="22" state="2" name="int"/>
+      </StartNode>
+      <EndNode>
+        <Element type="endNode" middleXY="179,364" number="22" state="3" name="int"/>
+        <Element type="endNode" middleXY="342,366" number="22" state="3" name="int"/>
+      </EndNode>
+      <DecisionNode/>
+      <MergeNode/>
+      <BranchNode/>
+    </IntNode>
+    <LineNode>
+      <ActCause>
+        <Element type="linkedlines" turnings="" fromXY="179,305" fromNum="21" fromState="0" fromName="int" toXY="342,305" toNum="23" toState="1" toName="int" state="0"/>
+      </ActCause>
+      <ActOrder>
+        <Element type="linkedlines" turnings="" fromXY="179,225" fromNum="20" fromState="0" fromName="int" toXY="179,305" toNum="21" toState="0" toName="int" state="1"/>
+        <Element type="linkedlines" turnings="" fromXY="179,158" fromNum="22" fromState="2" fromName="int" toXY="179,225" toNum="20" toState="0" toName="int" state="1"/>
+        <Element type="linkedlines" turnings="" fromXY="179,305" fromNum="21" fromState="0" fromName="int" toXY="179,364" toNum="22" toState="3" toName="int" state="1"/>
+      </ActOrder>
+      <Synchrony>
+        <Element type="linkedlines" turnings="" fromXY="179,225" fromNum="20" fromState="0" fromName="int" toXY="342,225" toNum="20" toState="1" toName="int" state="2"/>
+      </Synchrony>
+      <ExpectOrder>
+        <Element type="linkedlines" turnings="" fromXY="342,159" fromNum="22" fromState="2" fromName="int" toXY="342,225" toNum="20" toState="1" toName="int" state="3"/>
+        <Element type="linkedlines" turnings="" fromXY="342,225" fromNum="20" fromState="1" fromName="int" toXY="342,305" toNum="23" toState="1" toName="int" state="3"/>
+        <Element type="linkedlines" turnings="" fromXY="342,305" fromNum="23" fromState="1" fromName="int" toXY="342,366" toNum="22" toState="3" toName="int" state="3"/>
+      </ExpectOrder>
+      <ExpectCause/>
+    </LineNode>
+  </data>
+</diagram>

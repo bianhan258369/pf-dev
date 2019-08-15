@@ -30,6 +30,7 @@ import java.util.*;
 @Data
 @Service
 public class ClientService implements Serializable{
+    private boolean[] visited;
 
     private void loadProjectXML(String path) throws DocumentException {
         List<ProblemDiagram> subProblemDiagrams = new LinkedList<>();
@@ -2617,14 +2618,14 @@ public class ClientService implements Serializable{
         return problemDiagram.getReference();
     }
 
-    private boolean dfsCheckCircuit(boolean[] visited,boolean[][] graph, Interaction jiaohu, LinkedList<Interaction> jiaohus) {
+    private boolean dfsCheckCircuit(boolean[][] graph, Interaction jiaohu, LinkedList<Interaction> jiaohus) {
         if (visited[jiaohu.getNumber()]) {
             return true;
         }
         visited[jiaohu.getNumber()] = true;
         for(int i = 0;i < jiaohus.size();i++){
             if(graph[jiaohu.getNumber()][jiaohus.get(i).getNumber()]){
-                if(dfsCheckCircuit(visited, graph, jiaohus.get(i),jiaohus)){
+                if(dfsCheckCircuit(graph, jiaohus.get(i),jiaohus)){
                     return true;
                 }
             }
@@ -2633,7 +2634,7 @@ public class ClientService implements Serializable{
         return false;
     }
 
-    private boolean canAddConstraint(String path, int index, String from, String to, String cons, int[] numbers) throws DocumentException {
+    public boolean canAddConstraint(String path, int index, String from, String to, String cons, int[] numbers) throws DocumentException {
         List<ScenarioDiagram> scenarioDiagrams = new LinkedList<>();
         File file = new File(path);
         SAXReader saxReader = new SAXReader();
@@ -2651,7 +2652,7 @@ public class ClientService implements Serializable{
             senCount++;
         }
         if(cons.equals("StrictPre") || cons.equals("nStrictPre")){
-            boolean[] visited = new boolean[100];
+            visited = new boolean[100];
             boolean[][] graph = new boolean[100][100];
             ScenarioDiagram scenarioDiagram = scenarioDiagrams.get(index);
             for(int i = 0;i < 100;i++){
@@ -2669,8 +2670,7 @@ public class ClientService implements Serializable{
             }
             LinkedList<Interaction> jiaohus = scenarioDiagram.getInteractions();
             for(int i = 0;i < jiaohus.size();i++){
-                if(dfsCheckCircuit(visited, graph, jiaohus.get(i),jiaohus)){
-                    JOptionPane.showMessageDialog(null,"Circuit Exists!","Error",JOptionPane.ERROR_MESSAGE);
+                if(dfsCheckCircuit(graph, jiaohus.get(i),jiaohus)){
                     graph[Integer.parseInt(from.substring(3))][Integer.parseInt(to.substring(3))] = false;
                     return false;
                 }
@@ -2693,12 +2693,12 @@ public class ClientService implements Serializable{
                 }
                 LinkedList<Interaction> jiaohus = scenarioDiagram.getInteractions();
                 for(int i = 0;i < jiaohus.size();i++){
-                    if(dfsCheckCircuit(visited, graph, jiaohus.get(i),jiaohus)){
-                        JOptionPane.showMessageDialog(null,"Circuit Exists!","Error",JOptionPane.ERROR_MESSAGE);
+                    if(dfsCheckCircuit(graph, jiaohus.get(i),jiaohus)){
                         graph[Integer.parseInt(from.substring(3))][Integer.parseInt(to.substring(3))] = false;
                         return false;
                     }
                 }
+                return true;
             }
             else if(numbers[1] < 0){
                 ScenarioDiagram scenarioDiagram = scenarioDiagrams.get(index);
@@ -2714,15 +2714,15 @@ public class ClientService implements Serializable{
                 }
                 LinkedList<Interaction> jiaohus = scenarioDiagram.getInteractions();
                 for(int i = 0;i < jiaohus.size();i++){
-                    if(dfsCheckCircuit(visited, graph, jiaohus.get(i),jiaohus)){
-                        JOptionPane.showMessageDialog(null,"Circuit Exists!","Error",JOptionPane.ERROR_MESSAGE);
+                    if(dfsCheckCircuit(graph, jiaohus.get(i),jiaohus)){
                         graph[Integer.parseInt(from.substring(3))][Integer.parseInt(to.substring(3))] = false;
                         return false;
                     }
                 }
+                return true;
             }
         }
-        return false;
+        return true;
     }
 
     public Object getScenarioDiagramByDomain(String path, int index, String domainText) throws DocumentException {
