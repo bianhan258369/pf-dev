@@ -2,11 +2,10 @@ package com.ECNU.service;
 
 import com.ECNU.bean.*;
 import com.ECNU.util.IPUtil;
-import com.hp.hpl.jena.ontology.*;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.sun.corba.se.spi.ior.ObjectKey;
 import javafx.beans.binding.ObjectExpression;
 import lombok.Data;
+import org.apache.jena.ontology.*;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -31,7 +30,7 @@ import java.util.*;
 @Service
 public class ClientService implements Serializable{
     private boolean[] visited;
-
+/*
     private void loadProjectXML(String path) throws DocumentException {
         List<ProblemDiagram> subProblemDiagrams = new LinkedList<>();
         List<ClockDiagram> clockDiagrams = new LinkedList<>();
@@ -283,7 +282,7 @@ public class ClientService implements Serializable{
             senCount++;
         }
     }
-
+*/
     public int getDiagramCount(String path) throws DocumentException {
         {
             List<ProblemDiagram> subProblemDiagrams = new LinkedList<>();
