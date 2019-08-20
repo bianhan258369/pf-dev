@@ -6,6 +6,7 @@ import com.sun.corba.se.spi.ior.ObjectKey;
 import javafx.beans.binding.ObjectExpression;
 import lombok.Data;
 import org.apache.jena.ontology.*;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
