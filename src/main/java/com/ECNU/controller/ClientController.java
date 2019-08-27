@@ -12,7 +12,9 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -42,7 +44,78 @@ public class ClientController extends Cors{
         outputStream.write(file.getBytes());
         outputStream.flush();
         outputStream.close();
-        return "客户资料上传成功";
+        return "Upload Success";
+    }
+
+    @CrossOrigin
+    @RequestMapping("/download")
+    public void download() throws IOException {
+        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+        HttpServletRequest request = servletRequestAttributes.getRequest();
+        HttpServletResponse response = servletRequestAttributes.getResponse();
+        String ip = IPUtil.getIpAddress(request);
+        ip = ip.replace(':','-');
+        File assetFile = new File("asset");
+        if(!assetFile.exists()) assetFile.mkdir();
+        File tmpFile = new File("asset/" + ip);
+        if(!tmpFile.exists()) tmpFile.mkdir();
+        String filePath = "asset/" + ip + "/" + "constraints.txt";
+        File file = new File(filePath);
+        if(file.exists()){
+            response.setContentType("application/force-download");// 设置强制下载不打开
+            response.setHeader("Content-Disposition", "attachment;fileName="+ new String(filePath.getBytes("GB2312"),"ISO-8859-1"));
+            byte[] buffer = new byte[1024];
+            FileInputStream fis = null;
+            BufferedInputStream bis = null;
+            try {
+                fis = new FileInputStream(file);
+                bis = new BufferedInputStream(fis);
+                OutputStream os = response.getOutputStream();
+                int i = bis.read(buffer);
+                while (i != -1) {
+                    os.write(buffer, 0, i);
+                    i = bis.read(buffer);
+                }
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+            finally {
+                if (bis != null) {
+                    try {
+                        bis.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (fis != null) {
+                    try {
+                        fis.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
+
+    @CrossOrigin
+    @GetMapping("/saveConstraintsTxt")
+    public void saveConstraintsTxt(String constraints) throws DocumentException, IOException {
+        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+        HttpServletRequest request = servletRequestAttributes.getRequest();
+        String ip = IPUtil.getIpAddress(request);
+        ip = ip.replace(':','-');
+        File assetFile = new File("asset");
+        if(!assetFile.exists()) assetFile.mkdir();
+        File tmpFile = new File("asset/" + ip);
+        if(!tmpFile.exists()) tmpFile.mkdir();
+        String filePath = "asset/" + ip + "/" + "constraints.txt";
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(filePath));
+        for(int i = 0;i < constraints.split(",").length;i++){
+            bufferedWriter.write(constraints.split(",")[i]);
+            bufferedWriter.newLine();
+        }
+        bufferedWriter.close();
     }
 
     @CrossOrigin
@@ -216,12 +289,12 @@ public class ClientController extends Cors{
 
     @CrossOrigin
     @GetMapping("/canAddConstraint")
-    public Object canAddConstraint(int index, String from, String cons, String to, int[] numbers) throws DocumentException, FileNotFoundException {
+    public Object canAddConstraint(int index, String from, String cons, String to, String boundedFrom, String boundedTo) throws DocumentException, FileNotFoundException {
         ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = servletRequestAttributes.getRequest();
         String ip = IPUtil.getIpAddress(request);
         ip = ip.replace(':','-');
         String path = "asset/" + ip + "/" + "PackageRouterProject.xml";
-        return clientService.canAddConstraint(path, index, from, to, cons ,numbers);
+        return clientService.canAddConstraint(path, index, from, to, cons ,boundedFrom, boundedTo);
     }
 }

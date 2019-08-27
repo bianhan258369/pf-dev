@@ -1,0 +1,89 @@
+int1
+int2
+int13
+int14
+int15
+int16
+int6
+int7
+int8
+int9
+int10
+int11
+int12
+int22
+int28
+int17
+int18
+int19
+int3
+int4
+int5
+int20
+int21
+int23
+int25
+int24
+int29
+int27
+int30;
+
+int1 StrcitPre int15;
+int13 StrcitPre int1;
+int1 StrcitPre int14;
+int14 StrcitPre int2;
+int13 Coincidence 13;
+int14 Coincidence 14;
+int16 StrcitPre int13;
+int13 StrcitPre int15;
+int15 StrcitPre int14;
+int16 StrcitPre int2;
+int10 StrcitPre int19;
+int11 StrcitPre int17;
+int22 StrcitPre int18;
+int8 StrcitPre int9;
+int9 StrcitPre int10;
+int10 StrcitPre int22;
+int22 StrcitPre int12;
+int12 StrcitPre int28;
+int19 StrcitPre int18;
+int18 StrcitPre int17;
+int6 StrcitPre int11;
+int7 StrcitPre int11;
+int28 StrcitPre int7;
+int28 StrcitPre int6;
+int10 StrcitPre int19;
+int11 StrcitPre int17;
+int22 StrcitPre int18;
+int8 StrcitPre int9;
+int9 StrcitPre int10;
+int10 StrcitPre int22;
+int22 StrcitPre int11;
+int3 Coincidence 3;
+int4 Coincidence 4;
+int5 Coincidence 5;
+int19 StrcitPre int18;
+int18 StrcitPre int17;
+int11 StrcitPre int3;
+int11 StrcitPre int4;
+int11 StrcitPre int5;
+int17 StrcitPre int3;
+int17 StrcitPre int4;
+int17 StrcitPre int5;
+int21 StrcitPre int23;
+int20 StrcitPre int21;
+int20 Coincidence 20;
+int20 StrcitPre int23;
+int25 StrcitPre int27;
+int29 StrcitPre int30;
+int24 Coincidence 24;
+int24 StrcitPre int25;
+int24 StrcitPre int29;
+int24 StrcitPre int27;
+int24 StrcitPre int30;
+int15.s Alternate int15.f;
+int16.f Alternate int16.s;
+int16.f Alternate int15.s;
+int16.f Alternate int15.s;
+int2 Alternate int1;
+int8 StrictPre int10;

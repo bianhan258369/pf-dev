@@ -21,10 +21,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.swing.*;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.Serializable;
+import java.io.*;
 import java.util.*;
 
 @Data
@@ -2634,7 +2631,7 @@ public class ClientService implements Serializable{
         return false;
     }
 
-    public boolean canAddConstraint(String path, int index, String from, String to, String cons, int[] numbers) throws DocumentException {
+    public boolean canAddConstraint(String path, int index, String from, String to, String cons, String boundedFrom, String boundedTo) throws DocumentException {
         List<ScenarioDiagram> scenarioDiagrams = new LinkedList<>();
         File file = new File(path);
         SAXReader saxReader = new SAXReader();
@@ -2678,7 +2675,7 @@ public class ClientService implements Serializable{
             return true;
         }
         else if(cons.equals("BoundedDiff")){
-            if(numbers[0] > 0){
+            if(Integer.parseInt(boundedFrom) > 0){
                 ScenarioDiagram scenarioDiagram = scenarioDiagrams.get(index);
                 boolean[] visited = new boolean[100];
                 for(int i = 0;i < 100;i++) visited[i] = false;
@@ -2700,7 +2697,7 @@ public class ClientService implements Serializable{
                 }
                 return true;
             }
-            else if(numbers[1] < 0){
+            else if(Integer.parseInt(boundedTo) < 0){
                 ScenarioDiagram scenarioDiagram = scenarioDiagrams.get(index);
                 boolean[] visited = new boolean[100];
                 for(int i = 0;i < 100;i++) visited[i] = false;
