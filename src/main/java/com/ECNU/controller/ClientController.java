@@ -48,7 +48,7 @@ public class ClientController extends Cors{
     }
 
     @CrossOrigin
-    @RequestMapping("/download")
+    @GetMapping("/download")
     public void download() throws IOException {
         ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = servletRequestAttributes.getRequest();
@@ -125,7 +125,7 @@ public class ClientController extends Cors{
         HttpServletRequest request = servletRequestAttributes.getRequest();
         String ip = IPUtil.getIpAddress(request);
         ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "PackageRouterProject.xml";
+        String path = "asset/" + ip + "/" + "Project.xml";
         return clientService.getPhenomenonList(path, index);
     }
 
@@ -136,7 +136,7 @@ public class ClientController extends Cors{
         HttpServletRequest request = servletRequestAttributes.getRequest();
         String ip = IPUtil.getIpAddress(request);
         ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "PackageRouterProject.xml";
+        String path = "asset/" + ip + "/" + "Project.xml";
         return clientService.getDiagramCount(path);
     }
 
@@ -148,7 +148,7 @@ public class ClientController extends Cors{
         HttpServletRequest request = servletRequestAttributes.getRequest();
         String ip = IPUtil.getIpAddress(request);
         ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "PackageRouterProject.xml";
+        String path = "asset/" + ip + "/" + "Project.xml";
 
         return clientService.getRectList(path, index);
     }
@@ -160,7 +160,7 @@ public class ClientController extends Cors{
         HttpServletRequest request = servletRequestAttributes.getRequest();
         String ip = IPUtil.getIpAddress(request);
         ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "PackageRouterProject.xml";
+        String path = "asset/" + ip + "/" + "Project.xml";
         return clientService.getLineList(path, index);
     }
 
@@ -171,7 +171,7 @@ public class ClientController extends Cors{
         HttpServletRequest request = servletRequestAttributes.getRequest();
         String ip = IPUtil.getIpAddress(request);
         ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "PackageRouterProject.xml";
+        String path = "asset/" + ip + "/" + "Project.xml";
         return clientService.getOvalList(path, index);
     }
 
@@ -183,7 +183,7 @@ public class ClientController extends Cors{
         HttpServletRequest request = servletRequestAttributes.getRequest();
         String ip = IPUtil.getIpAddress(request);
         ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "PackageRouterProject.xml";
+        String path = "asset/" + ip + "/" + "Project.xml";
         return clientService.getSubProblenDiagramList(path);
     }
     */
@@ -195,7 +195,7 @@ public class ClientController extends Cors{
         HttpServletRequest request = servletRequestAttributes.getRequest();
         String ip = IPUtil.getIpAddress(request);
         ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "PackageRouterProject.xml";
+        String path = "asset/" + ip + "/" + "Project.xml";
         return clientService.getScenarioList(path, index);
     }
 
@@ -206,7 +206,7 @@ public class ClientController extends Cors{
         HttpServletRequest request = servletRequestAttributes.getRequest();
         String ip = IPUtil.getIpAddress(request);
         ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "PackageRouterProject.xml";
+        String path = "asset/" + ip + "/" + "Project.xml";
         return clientService.getInteractionList(path, index);
     }
 
@@ -217,7 +217,7 @@ public class ClientController extends Cors{
         HttpServletRequest request = servletRequestAttributes.getRequest();
         String ip = IPUtil.getIpAddress(request);
         ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "PackageRouterProject.xml";
+        String path = "asset/" + ip + "/" + "Project.xml";
         return clientService.getSubProblenDiagramList(path);
     }
 
@@ -228,7 +228,7 @@ public class ClientController extends Cors{
         HttpServletRequest request = servletRequestAttributes.getRequest();
         String ip = IPUtil.getIpAddress(request);
         ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "PackageRouterProject.xml";
+        String path = "asset/" + ip + "/" + "Project.xml";
         return clientService.getScenarioDiagramList(path);
     }
 
@@ -239,7 +239,7 @@ public class ClientController extends Cors{
         HttpServletRequest request = servletRequestAttributes.getRequest();
         String ip = IPUtil.getIpAddress(request);
         ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "PackageRouterProject.xml";
+        String path = "asset/" + ip + "/" + "Project.xml";
         return clientService.getDiagramList(path);
     }
 
@@ -250,7 +250,7 @@ public class ClientController extends Cors{
         HttpServletRequest request = servletRequestAttributes.getRequest();
         String ip = IPUtil.getIpAddress(request);
         ip = ip.replace(':','-');
-        String xmlPath = "asset/" + ip + "/" + "PackageRouterProject.xml";
+        String xmlPath = "asset/" + ip + "/" + "Project.xml";
         String owlPath = "asset/" + ip + "/" + "environment.owl";
         return clientService.getOWLConstraints(xmlPath, owlPath);
     }
@@ -262,7 +262,7 @@ public class ClientController extends Cors{
         HttpServletRequest request = servletRequestAttributes.getRequest();
         String ip = IPUtil.getIpAddress(request);
         ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "PackageRouterProject.xml";
+        String path = "asset/" + ip + "/" + "Project.xml";
         return clientService.getAllPhenomenonList(path);
     }
     @CrossOrigin
@@ -272,7 +272,7 @@ public class ClientController extends Cors{
         HttpServletRequest request = servletRequestAttributes.getRequest();
         String ip = IPUtil.getIpAddress(request);
         ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "PackageRouterProject.xml";
+        String path = "asset/" + ip + "/" + "Project.xml";
         return clientService.getAllReferenceList(path);
     }
 
@@ -283,7 +283,7 @@ public class ClientController extends Cors{
         HttpServletRequest request = servletRequestAttributes.getRequest();
         String ip = IPUtil.getIpAddress(request);
         ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "PackageRouterProject.xml";
+        String path = "asset/" + ip + "/" + "Project.xml";
         return clientService.getScenarioDiagramByDomain(path, index, domainText);
     }
 
@@ -294,7 +294,7 @@ public class ClientController extends Cors{
         HttpServletRequest request = servletRequestAttributes.getRequest();
         String ip = IPUtil.getIpAddress(request);
         ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "PackageRouterProject.xml";
+        String path = "asset/" + ip + "/" + "Project.xml";
         return clientService.canAddConstraint(path, index, from, to, cons ,boundedFrom, boundedTo);
     }
 }

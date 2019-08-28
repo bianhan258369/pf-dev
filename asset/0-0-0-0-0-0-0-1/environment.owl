@@ -72,7 +72,7 @@
           <owl:ObjectProperty rdf:ID="has_trans"/>
         </owl:onProperty>
         <owl:allValuesFrom>
-          <owl:Class rdf:ID="trans_Stopped_Running"/>
+          <owl:Class rdf:ID="trans_stopped_running"/>
         </owl:allValuesFrom>
       </owl:Restriction>
     </rdfs:subClassOf>
@@ -82,7 +82,7 @@
           <owl:ObjectProperty rdf:about="#has_trans"/>
         </owl:onProperty>
         <owl:allValuesFrom>
-          <owl:Class rdf:ID="trans_Running_Stopped"/>
+          <owl:Class rdf:ID="trans_running_stopped"/>
         </owl:allValuesFrom>
       </owl:Restriction>
     </rdfs:subClassOf>
@@ -422,7 +422,7 @@
       </owl:Restriction>
     </rdfs:subClassOf>
   </owl:Class>
-  <owl:Class rdf:about="#trans_Running_Stopped">
+  <owl:Class rdf:about="#trans_running_stopped">
     <rdfs:subClassOf rdf:resource="#Transition"/>
     <rdfs:subClassOf>
       <owl:Restriction>
@@ -457,7 +457,7 @@
   <owl:Class rdf:about="#destn">
     <rdfs:subClassOf rdf:resource="#Attribute"/>
   </owl:Class>
-  <owl:Class rdf:about="#trans_Stopped_Running">
+  <owl:Class rdf:about="#trans_stopped_running">
     <rdfs:subClassOf rdf:resource="#Transition"/>
     <rdfs:subClassOf>
       <owl:Restriction>
