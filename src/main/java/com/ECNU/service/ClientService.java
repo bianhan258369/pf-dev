@@ -1,5 +1,7 @@
 package com.ECNU.service;
 
+import com.ECNU.FormatTransfer.RunNuSMV;
+import com.ECNU.FormatTransfer.ToNuSMVFormat;
 import com.ECNU.bean.*;
 import com.ECNU.util.IPUtil;
 import com.sun.corba.se.spi.ior.ObjectKey;
@@ -3134,5 +3136,17 @@ public class ClientService implements Serializable{
         for(int i = 0;i < nowJiaohu.size();i++) result.add(nowJiaohu.get(i));
         for(int i = 0;i < nowChangjing.size();i++) result.add(nowChangjing.get(i));
         return result;
+    }
+
+    // .txt --> .smv bound:5-50
+    public void ToNuSMVFormat(String srcFileName, String destFileName, String path, int bound) {
+        new ToNuSMVFormat(srcFileName,destFileName,path,bound);
+    }
+
+    // .smv --> result(.info)
+    public String SMVResultInfo(String srcFileName, String destFileName,String path) {
+        RunNuSMV run = new RunNuSMV(srcFileName,destFileName,path);
+        run.runSMV();
+        return run.getOutputInfo();//consistent inconsistent
     }
 }
