@@ -1,0 +1,194 @@
+MODULE main
+
+VAR
+int1:boolean;
+int2:boolean;
+int3:boolean;
+int4:boolean;
+int5:boolean;
+int6:boolean;
+int7:boolean;
+int8:boolean;
+int9:boolean;
+int10:boolean;
+int11:boolean;
+int12:boolean;
+int13:boolean;
+int14:boolean;
+int15:boolean;
+int16:boolean;
+int17:boolean;
+int18:boolean;
+int19:boolean;
+int20:boolean;
+int21:boolean;
+int22:boolean;
+int24:boolean;
+int25:boolean;
+int26:boolean;
+int27:boolean;
+
+ctr1:strictpre(int15,int13,5);
+ctr2:strictpre(int1,int15,5);
+ctr3:strictpre(int2,int16,5);
+ctr4:strictpre(int13,int1,5);
+ctr5:strictpre(int1,int14,5);
+ctr6:strictpre(int14,int2,5);
+ctr7:coincidence(int13,int13);
+ctr8:coincidence(int14,int14);
+ctr9:strictpre(int16,int13,5);
+ctr10:strictpre(int13,int15,5);
+ctr11:strictpre(int15,int14,5);
+ctr12:strictpre(int10,int19,5);
+ctr13:strictpre(int11,int17,5);
+ctr14:strictpre(int22,int18,5);
+ctr15:strictpre(int8,int9,5);
+ctr16:strictpre(int9,int10,5);
+ctr17:strictpre(int10,int22,5);
+ctr18:strictpre(int22,int12,5);
+ctr19:strictpre(int19,int18,5);
+ctr20:strictpre(int18,int26,5);
+ctr21:strictpre(int26,int17,5);
+ctr22:strictpre(int6,int26,5);
+ctr23:strictpre(int7,int26,5);
+ctr24:strictpre(int12,int8,5);
+ctr25:strictpre(int12,int7,5);
+ctr26:strictpre(int6,int11,5);
+ctr27:strictpre(int7,int11,5);
+ctr28:strictpre(int10,int19,5);
+ctr29:strictpre(int11,int17,5);
+ctr30:strictpre(int22,int18,5);
+ctr31:strictpre(int8,int9,5);
+ctr32:strictpre(int9,int10,5);
+ctr33:strictpre(int10,int22,5);
+ctr34:strictpre(int22,int11,5);
+ctr35:coincidence(int3,int3);
+ctr36:coincidence(int4,int4);
+ctr37:coincidence(int5,int5);
+ctr38:strictpre(int19,int18,5);
+ctr39:strictpre(int18,int17,5);
+ctr40:strictpre(int11,int3,5);
+ctr41:strictpre(int11,int4,5);
+ctr42:strictpre(int11,int5,5);
+ctr43:strictpre(int17,int3,5);
+ctr44:strictpre(int17,int4,5);
+ctr45:strictpre(int17,int5,5);
+ctr46:strictpre(int21,int22,5);
+ctr47:strictpre(int20,int21,5);
+ctr48:coincidence(int20,int20);
+ctr49:strictpre(int20,int22,5);
+ctr50:strictpre(int25,int27,5);
+ctr51:strictpre(int24,int26,5);
+ctr52:strictpre(int26,int25,5);
+ctr53:coincidence(int24,int24);
+ctr54:coincidence(int26,int26);
+ctr55:strictpre(int24,int26,5);
+ctr56:strictpre(int26,int27,5);
+
+ASSIGN
+init(int1) := FALSE;
+init(int2) := FALSE;
+init(int3) := FALSE;
+init(int4) := FALSE;
+init(int5) := FALSE;
+init(int6) := FALSE;
+init(int7) := FALSE;
+init(int8) := FALSE;
+init(int9) := FALSE;
+init(int10) := FALSE;
+init(int11) := FALSE;
+init(int12) := FALSE;
+init(int13) := FALSE;
+init(int14) := FALSE;
+init(int15) := FALSE;
+init(int16) := FALSE;
+init(int17) := FALSE;
+init(int18) := FALSE;
+init(int19) := FALSE;
+init(int20) := FALSE;
+init(int21) := FALSE;
+init(int22) := FALSE;
+init(int24) := FALSE;
+init(int25) := FALSE;
+init(int26) := FALSE;
+init(int27) := FALSE;
+CTLSPEC ( ! EF AG !( int1|int2|int3|int4|int5|int6|int7|int8|int9|int10|int11|int12|int13|int14|int15|int16|int17|int18|int19|int20|int21|int22|int24|int25|int26|int27 ) )
+
+MODULE strictpre(left,right,n)
+VAR
+	coun:0..n;
+INIT
+	coun=0;
+TRANS
+case
+	coun=0: (next(left)=TRUE & next(right)=FALSE & next(coun)=coun+1)|(next(left)=FALSE & next(right)=FALSE & next(coun)=coun);
+	coun<n: (next(left)=TRUE & next(right)=FALSE & next(coun)=coun+1)|(next(left)=TRUE & next(right)=TRUE & next(coun)=coun)|(next(left)=FALSE & next(right)=TRUE & next(coun)=coun - 1)|(next(left)=FALSE & next(right)=FALSE & next(coun)=coun);
+	TRUE: (next(left)=TRUE & next(right)=TRUE & next(coun)=coun)|(next(left)=FALSE & next(right)=TRUE & next(coun)=coun - 1)|(next(left)=FALSE & next(right)=FALSE & next(coun)=coun);
+esac
+
+
+MODULE unionn(left,right,new)
+TRANS
+	(next(left)=TRUE & next(new)=TRUE)|(next(right)=TRUE & next(new)=TRUE)|(next(left)=FALSE & next(right)=FALSE & next(new)=FALSE)
+
+MODULE boundeddiff(left,right,i,j)
+VAR
+dif: i..j;
+INIT
+dif=0
+TRANS
+case
+dif=j:((next(left)=FALSE&next(right)=TRUE&next(dif)=dif - 1) | (next(left)=TRUE&next(right)=TRUE&next(dif)=dif) | (next(left)=FALSE&next(right)=FALSE&next(dif)=dif));
+dif=i:((next(left)=TRUE&next(right)=FALSE&next(dif)=dif+1) | (next(left)=TRUE&next(right)=TRUE&next(dif)=dif) | (next(left)=FALSE&next(right)=FALSE&next(dif)=dif));
+TRUE:(next(left)=TRUE&next(right)=FALSE&next(dif)=dif+1) | (next(left)=FALSE&next(right)=TRUE&next(dif)=dif - 1) | (next(left)=TRUE&next(right)=TRUE&next(dif)=dif) | (next(left)=FALSE&next(right)=FALSE&next(dif)=dif);
+esac
+
+MODULE cause(left,right,n)
+VAR
+scnt:0..n;
+INIT
+scnt=0
+TRANS
+case
+scnt=0:((next(left)=TRUE&next(right)=FALSE&next(scnt)=scnt+1) | (next(left)=FALSE&next(right)=FALSE&next(scnt)=scnt) | (next(left)=TRUE&next(right)=TRUE&next(scnt)=scnt));
+scnt>0&scnt<n:(next(left)=TRUE&next(right)=FALSE&next(scnt)=scnt+1) | (next(left)=TRUE&next(right)=TRUE&next(scnt)=scnt) | (next(left)=FALSE&next(right)=TRUE&next(scnt)=scnt - 1) | (next(left)=FALSE&next(right)=FALSE&
+next(scnt)=scnt);
+scnt=n:(next(left)=TRUE&next(right)=TRUE&next(scnt)=scnt) | (next(left)=FALSE&next(right)=TRUE&next(scnt)=scnt - 1) | (next(left)=FALSE&next(right)=FALSE&next(scnt)=scnt);
+
+esac 
+
+MODULE coincidence(left,right)
+TRANS
+next(left)->next(right)&next(right)->next(left)
+
+MODULE subclock(left,right)
+TRANS
+      next(left)->next(right)
+
+MODULE delay(left,right,k)
+VAR
+	cnt:0..k;
+INIT
+	cnt=0;
+TRANS
+case
+	cnt<k: next(left)=FALSE & ((next(right)=TRUE & next(cnt)=cnt+1)|(next(right)=FALSE & next(cnt)=cnt));
+	cnt=k|cnt>k: (next(left)=TRUE & next(right)=TRUE & next(cnt)=cnt)|(next(left)=FALSE & next(right)=FALSE & next(cnt)=cnt);
+
+esac
+
+MODULE exclusion (left, right)
+TRANS
+(next (left)=TRUE & next (right)=FALSE) | (next(left)=FALSE & next (right)=TRUE)| (next(left)=FALSE & next (right)=FALSE);
+
+MODULE Alter(left,right)
+VAR
+	state:boolean;
+INIT
+	state=FALSE;
+TRANS
+case
+    state = FALSE :  (next(right)=FALSE & next(left)=TRUE  & next(state) = TRUE )|(next(right)=FALSE & next(left)=FALSE & next(state)=FALSE);
+    state = TRUE :  (next(left)=FALSE & next(right)=TRUE  & next(state) = FALSE)|(next(left)=FALSE & next(right)=FALSE & next(state)=TRUE);
+
+esac

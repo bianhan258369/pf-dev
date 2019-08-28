@@ -1,0 +1,37 @@
+request
+inquiry
+responseOfTrack
+checkSucc
+checkFail
+startUnoccupied
+startOccupied
+redPulse
+greenPulse
+showGreen
+showRed
+wait
+enter
+responseOfTrain
+leave;
+
+request StrictPre inquiry;
+checkSucc Union checkFail (responseOfTrack);
+checkFail StrictPre redPulse;
+checkSucc StrictPre greenPulse;
+greenPulse Cause showGreen;
+redPulse Cause showRed;
+showRed StrictPre wait;
+showGreen StrictPre enter;
+enter Union wait (responseOfTrain);
+request Alter responseOfTrain;
+startOccupied Exclusion startUnoccupied;
+checkSucc Exclusion checkFail;
+enter StrictPre leave;
+enter Coincidence startOccupied;
+leave Coincidence startUnoccupied;
+inquiry Boundeddiff [40] responseOfTrack;
+greenPulse Boundeddiff [30] showGreen;
+redPulse Boundeddiff [30] showRed;
+request Boundeddiff [50] responseOfTrain;
+checkFail Boundeddiff [40] showRed;
+checkSucc Boundeddiff [40] showGreen;
