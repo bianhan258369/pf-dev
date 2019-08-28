@@ -297,4 +297,15 @@ public class ClientController extends Cors{
         String path = "asset/" + ip + "/" + "Project.xml";
         return clientService.canAddConstraint(path, index, from, to, cons ,boundedFrom, boundedTo);
     }
+
+    @CrossOrigin
+    @GetMapping("/semanticsCheck")
+    public String canAddConstraint(int index, String from, String cons, String to, String boundedFrom, String boundedTo) throws DocumentException, FileNotFoundException {
+        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+        HttpServletRequest request = servletRequestAttributes.getRequest();
+        String ip = IPUtil.getIpAddress(request);
+        ip = ip.replace(':','-');
+        String path = "asset/" + ip + "/" + "Project.xml";
+        return clientService.canAddConstraint(path, index, from, to, cons ,boundedFrom, boundedTo);
+    }
 }
