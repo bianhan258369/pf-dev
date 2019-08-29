@@ -19,7 +19,7 @@ public abstract class ToCommonFormat {
     protected static String fileSeparator = System.getProperty("file.separator");
     // process the ToNuSMVFormat/ToMyCCLFormat Exception
     protected static StringBuilder exception = new StringBuilder();
-    protected static final String[] str = {"Union","Boundeddiff","StrictPre","Coincidence","Alter",
+    protected static final String[] str = {"Union","Boundeddiff","StrictPre","Coincidence","Alternate",
             "Exclusion","Cause" };
     // All clock keyWordsString to ArrayList<String>
     protected static final List<String> clockKws = Arrays.asList(str);

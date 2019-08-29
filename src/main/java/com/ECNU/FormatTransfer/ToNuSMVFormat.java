@@ -80,7 +80,7 @@ public class ToNuSMVFormat extends ToCommonFormat {
                 fw.write(":coincidence(");
                 fw.write(splitList[0] + "," + splitList[2] + ");" + lineSeparator);
                 count++;
-            }else if(kw.equals("Alter")) {
+            }else if(kw.equals("Alternate")) {
                 fw.write(":Alter(");
                 fw.write(splitList[0] + "," + splitList[2] + ");" + lineSeparator);
                 count++;

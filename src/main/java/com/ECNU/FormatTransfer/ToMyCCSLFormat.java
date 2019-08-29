@@ -58,7 +58,7 @@ public class ToMyCCSLFormat extends ToCommonFormat{
                 fw.write(splitList[0] + "<" + splitList[2] + lineSeparator);
             }else if (kw.equals("Coincidence")) {
                 fw.write(splitList[0] + "==" + splitList[2] + lineSeparator);
-            }else if(kw.equals("Alter")) {
+            }else if(kw.equals("Alternate")) {
                 fw.write(splitList[0] + "<" + splitList[2] + lineSeparator);
                 fw.write("tmp" + count + "=" + splitList[0] + "$1");
                 fw.write(lineSeparator + splitList[2] + "<tmp" + count);
@@ -74,6 +74,6 @@ public class ToMyCCSLFormat extends ToCommonFormat{
 
     public static void main(String[] args) {
         new ToMyCCSLFormat("test2.txt","test2"
-                ,"MyCCSL",15);
+                ,"NuSMV",15);
     }
 }

@@ -35,7 +35,7 @@ public class RunNuSMV extends ExecCommand {
 
     public void runSMV() {
         try {
-            this.exec(new String[] {path + fileSeparator + "DONOTMOVE\\NuSMV.exe",
+            this.exec(new String[] {"asset" + fileSeparator + "DONOTMOVE\\NuSMV.exe",
                     path + fileSeparator + fileNameSrc},path);
         } catch (IOException e) {
             e.printStackTrace();

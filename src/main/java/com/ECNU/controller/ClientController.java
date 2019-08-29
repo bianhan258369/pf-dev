@@ -48,7 +48,7 @@ public class ClientController extends Cors{
     }
 
     @CrossOrigin
-    @GetMapping("/download")
+    @GetMapping("/downloadMyCCSLFile")
     public void download() throws IOException {
         ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = servletRequestAttributes.getRequest();
@@ -59,7 +59,7 @@ public class ClientController extends Cors{
         if(!assetFile.exists()) assetFile.mkdir();
         File tmpFile = new File("asset/" + ip);
         if(!tmpFile.exists()) tmpFile.mkdir();
-        String filePath = "asset/" + ip + "/" + "constraints.txt";
+        String filePath = "asset/" + ip + "/" + "constraints.myccsl";
         File file = new File(filePath);
         if(file.exists()){
             response.setContentType("application/force-download");// 设置强制下载不打开
@@ -99,8 +99,54 @@ public class ClientController extends Cors{
     }
 
     @CrossOrigin
-    @GetMapping("/saveConstraintsTxt")
-    public void saveConstraintsTxt(String constraints) throws DocumentException, IOException {
+    @GetMapping("/downloadMyCCSLTool")
+    public void downloadMyCCSL() throws IOException {
+        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+        HttpServletResponse response = servletRequestAttributes.getResponse();
+        File assetFile = new File("asset");
+        if(!assetFile.exists()) assetFile.mkdir();
+        String filePath = "asset/MyCCSL.zip";
+        File file = new File(filePath);
+        if(file.exists()){
+            response.setContentType("application/force-download");// 设置强制下载不打开
+            response.setHeader("Content-Disposition", "attachment;fileName="+ new String(filePath.getBytes("GB2312"),"ISO-8859-1"));
+            byte[] buffer = new byte[1024];
+            FileInputStream fis = null;
+            BufferedInputStream bis = null;
+            try {
+                fis = new FileInputStream(file);
+                bis = new BufferedInputStream(fis);
+                OutputStream os = response.getOutputStream();
+                int i = bis.read(buffer);
+                while (i != -1) {
+                    os.write(buffer, 0, i);
+                    i = bis.read(buffer);
+                }
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+            finally {
+                if (bis != null) {
+                    try {
+                        bis.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (fis != null) {
+                    try {
+                        fis.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
+
+    @CrossOrigin
+    @GetMapping("/saveConstraintsTxtAndMyCCSL")
+    public void saveConstraintsTxtAndMyCCSL(String constraints) throws DocumentException, IOException {
         ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = servletRequestAttributes.getRequest();
         String ip = IPUtil.getIpAddress(request);
@@ -116,6 +162,10 @@ public class ClientController extends Cors{
             bufferedWriter.newLine();
         }
         bufferedWriter.close();
+        String path = "asset/" + ip;
+        String txtFileName =  "constraints.txt";
+        String smvFileName = "constraints";
+        clientService.toMyCCSLFormat(txtFileName, smvFileName, path,5);
     }
 
     @CrossOrigin
@@ -290,17 +340,6 @@ public class ClientController extends Cors{
     @CrossOrigin
     @GetMapping("/canAddConstraint")
     public Object canAddConstraint(int index, String from, String cons, String to, String boundedFrom, String boundedTo) throws DocumentException, FileNotFoundException {
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = servletRequestAttributes.getRequest();
-        String ip = IPUtil.getIpAddress(request);
-        ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.canAddConstraint(path, index, from, to, cons ,boundedFrom, boundedTo);
-    }
-
-    @CrossOrigin
-    @GetMapping("/semanticsCheck")
-    public String canAddConstraint(int index, String from, String cons, String to, String boundedFrom, String boundedTo) throws DocumentException, FileNotFoundException {
         ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = servletRequestAttributes.getRequest();
         String ip = IPUtil.getIpAddress(request);

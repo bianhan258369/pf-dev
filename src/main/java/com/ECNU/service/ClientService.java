@@ -1,6 +1,7 @@
 package com.ECNU.service;
 
 import com.ECNU.FormatTransfer.RunNuSMV;
+import com.ECNU.FormatTransfer.ToMyCCSLFormat;
 import com.ECNU.FormatTransfer.ToNuSMVFormat;
 import com.ECNU.bean.*;
 import com.ECNU.util.IPUtil;
@@ -3138,15 +3139,9 @@ public class ClientService implements Serializable{
         return result;
     }
 
-    // .txt --> .smv bound:5-50
-    public void ToNuSMVFormat(String srcFileName, String destFileName, String path, int bound) {
-        new ToNuSMVFormat(srcFileName,destFileName,path,bound);
+    // .txt --> .myccsl
+    public void toMyCCSLFormat(String srcFileName, String destFileName, String path, int bound) {
+        new ToMyCCSLFormat(srcFileName,destFileName,path,bound);
     }
 
-    // .smv --> result(.info)
-    public String SMVResultInfo(String srcFileName, String destFileName,String path) {
-        RunNuSMV run = new RunNuSMV(srcFileName,destFileName,path);
-        run.runSMV();
-        return run.getOutputInfo();//consistent inconsistent
-    }
 }
