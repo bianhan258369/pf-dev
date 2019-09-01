@@ -4,6 +4,9 @@ import com.ECNU.bean.*;
 import com.ECNU.service.ClientService;
 import com.ECNU.util.Cors;
 import com.ECNU.util.IPUtil;
+import com.fasterxml.jackson.databind.util.JSONPObject;
+import com.github.jsonldjava.utils.Obj;
+import net.sf.json.JSONObject;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
@@ -151,17 +154,17 @@ public class ClientController extends Cors{
 
     @CrossOrigin
     @GetMapping("/saveConstraintsTxtAndXMLAndMyCCSL")
-    public void saveConstraintsTxtAndXMLAndMyCCSL(String constraints,String addedConstraints) throws DocumentException, IOException {
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = servletRequestAttributes.getRequest();
-        String ip = IPUtil.getIpAddress(request);
-        ip = ip.replace(':','-');
-        File assetFile = new File("asset");
-        if(!assetFile.exists()) assetFile.mkdir();
-        File tmpFile = new File("asset/" + ip);
-        if(!tmpFile.exists()) tmpFile.mkdir();
-        String filePath = "asset/" + ip + "/" + "constraints.txt";
-        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(filePath));
+    public void saveConstraintsTxtAndXMLAndMyCCSL(String path, String constraints,String addedConstraints) throws DocumentException, IOException {
+//        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+//        HttpServletRequest request = servletRequestAttributes.getRequest();
+//        String ip = IPUtil.getIpAddress(request);
+//        ip = ip.replace(':','-');
+//        File assetFile = new File("asset");
+//        if(!assetFile.exists()) assetFile.mkdir();
+//        File tmpFile = new File("asset/" + ip);
+//        if(!tmpFile.exists()) tmpFile.mkdir();
+//        String filePath = "asset/" + ip + "/" + "constraints.txt";
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path + "/constraints.txt"));
         Document document = DocumentHelper.createDocument();
         Element root=document.addElement("AddedConstraints");
         OutputFormat format = OutputFormat.createPrettyPrint();
@@ -175,7 +178,7 @@ public class ClientController extends Cors{
         }
         Writer out;
         try {
-            out = new FileWriter("asset/" + ip + "/" + "addedConstraints.xml");
+            out = new FileWriter(path + "/addedConstraints.xml");
             XMLWriter writer = new XMLWriter(out, format);
             writer.write(document);
             writer.close();
@@ -185,7 +188,6 @@ public class ClientController extends Cors{
             e.printStackTrace();
         }
         bufferedWriter.close();
-        String path = "asset/" + ip;
         String txtFileName =  "constraints.txt";
         String smvFileName = "constraints";
         clientService.toMyCCSLFormat(txtFileName, smvFileName, path,5);
@@ -193,203 +195,209 @@ public class ClientController extends Cors{
 
     @CrossOrigin
     @GetMapping("/getPhenomenonList")
-    public Object getPhenomenonList(int index) throws DocumentException{
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = servletRequestAttributes.getRequest();
-        String ip = IPUtil.getIpAddress(request);
-        ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.getPhenomenonList(path, index);
+    public Object getPhenomenonList(String path, int index) throws DocumentException{
+//        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+//        HttpServletRequest request = servletRequestAttributes.getRequest();
+//        String ip = IPUtil.getIpAddress(request);
+//        ip = ip.replace(':','-');
+//        String path = "asset/" + ip + "/" + "Project.xml";
+        return clientService.getPhenomenonList(path + "/Project.xml", index);
     }
 
     @CrossOrigin
     @GetMapping("/getDiagramCount")
-    public Object getDiagramCount() throws DocumentException {
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = servletRequestAttributes.getRequest();
-        String ip = IPUtil.getIpAddress(request);
-        ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.getDiagramCount(path);
+    public Object getDiagramCount(String path) throws DocumentException {
+//        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+//        HttpServletRequest request = servletRequestAttributes.getRequest();
+//        String ip = IPUtil.getIpAddress(request);
+//        ip = ip.replace(':','-');
+//        String path = "asset/" + ip + "/" + "Project.xml";
+        return clientService.getDiagramCount(path + "/Project.xml");
     }
 
 
     @CrossOrigin
     @GetMapping("/getRectList")
-    public Object getRectList(int index) throws DocumentException{
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = servletRequestAttributes.getRequest();
-        String ip = IPUtil.getIpAddress(request);
-        ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "Project.xml";
-
-        return clientService.getRectList(path, index);
+    public Object getRectList(String path, int index) throws DocumentException{
+//        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+//        HttpServletRequest request = servletRequestAttributes.getRequest();
+//        String ip = IPUtil.getIpAddress(request);
+//        ip = ip.replace(':','-');
+//        String path = "asset/" + ip + "/" + "Project.xml";
+        return clientService.getRectList(path + "/Project.xml", index);
     }
 
     @CrossOrigin
     @GetMapping("/getLineList")
-    public Object getLineList(int index) throws DocumentException{
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = servletRequestAttributes.getRequest();
-        String ip = IPUtil.getIpAddress(request);
-        ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.getLineList(path, index);
+    public Object getLineList(String path, int index) throws DocumentException{
+//        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+//        HttpServletRequest request = servletRequestAttributes.getRequest();
+//        String ip = IPUtil.getIpAddress(request);
+//        ip = ip.replace(':','-');
+//        String path = "asset/" + ip + "/" + "Project.xml";
+        return clientService.getLineList(path + "/Project.xml", index);
     }
 
     @CrossOrigin
     @GetMapping("/getOvalList")
-    public Object getOvalList(int index) throws DocumentException{
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = servletRequestAttributes.getRequest();
-        String ip = IPUtil.getIpAddress(request);
-        ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.getOvalList(path, index);
+    public Object getOvalList(String path, int index) throws DocumentException{
+//        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+//        HttpServletRequest request = servletRequestAttributes.getRequest();
+//        String ip = IPUtil.getIpAddress(request);
+//        ip = ip.replace(':','-');
+//        String path = "asset/" + ip + "/" + "Project.xml";
+        return clientService.getOvalList(path + "/Project.xml", index);
     }
-
-    /*
-    @CrossOrigin
-    @GetMapping("/getSubProblemDiagramList")
-    public Object getSubProblenDiagramList() throws DocumentException{
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = servletRequestAttributes.getRequest();
-        String ip = IPUtil.getIpAddress(request);
-        ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.getSubProblenDiagramList(path);
-    }
-    */
 
     @CrossOrigin
     @GetMapping("/getScenarioList")
-    public Object getScenarioList(int index) throws DocumentException{
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = servletRequestAttributes.getRequest();
-        String ip = IPUtil.getIpAddress(request);
-        ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.getScenarioList(path, index);
+    public Object getScenarioList(String path, int index) throws DocumentException{
+//        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+//        HttpServletRequest request = servletRequestAttributes.getRequest();
+//        String ip = IPUtil.getIpAddress(request);
+//        ip = ip.replace(':','-');
+//        String path = "asset/" + ip + "/" + "Project.xml";
+        return clientService.getScenarioList(path + "/Project.xml", index);
     }
 
     @CrossOrigin
     @GetMapping("/getInteractionList")
-    public Object getInteractionList(int index) throws DocumentException{
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = servletRequestAttributes.getRequest();
-        String ip = IPUtil.getIpAddress(request);
-        ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.getInteractionList(path, index);
+    public Object getInteractionList(String path, int index) throws DocumentException{
+//        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+//        HttpServletRequest request = servletRequestAttributes.getRequest();
+//        String ip = IPUtil.getIpAddress(request);
+//        ip = ip.replace(':','-');
+//        String path = "asset/" + ip + "/" + "Project.xml";
+        return clientService.getInteractionList(path + "/Project.xml", index);
     }
 
     @CrossOrigin
     @GetMapping("/getSubProblemDiagramList")
-    public Object getSubProblemDiagramList() throws DocumentException{
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = servletRequestAttributes.getRequest();
-        String ip = IPUtil.getIpAddress(request);
-        ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.getSubProblenDiagramList(path);
+    public Object getSubProblemDiagramList(String path) throws DocumentException{
+//        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+//        HttpServletRequest request = servletRequestAttributes.getRequest();
+//        String ip = IPUtil.getIpAddress(request);
+//        ip = ip.replace(':','-');
+//        String path = "asset/" + ip + "/" + "Project.xml";
+        return clientService.getSubProblenDiagramList(path + "/Project.xml");
     }
 
     @CrossOrigin
     @GetMapping("/getScenarioDiagramList")
-    public Object getScenarioDiagramList() throws DocumentException{
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = servletRequestAttributes.getRequest();
-        String ip = IPUtil.getIpAddress(request);
-        ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.getScenarioDiagramList(path);
+    public Object getScenarioDiagramList(String path) throws DocumentException{
+//        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+//        HttpServletRequest request = servletRequestAttributes.getRequest();
+//        String ip = IPUtil.getIpAddress(request);
+//        ip = ip.replace(':','-');
+//        String path = "asset/" + ip + "/" + "Project.xml";
+        return clientService.getScenarioDiagramList(path + "/Project.xml");
     }
 
     @CrossOrigin
     @GetMapping("/getDiagramList")
-    public Object getDiagramList() throws DocumentException{
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = servletRequestAttributes.getRequest();
-        String ip = IPUtil.getIpAddress(request);
-        ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.getDiagramList(path);
+    public Object getDiagramList(String path) throws DocumentException{
+//        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+//        HttpServletRequest request = servletRequestAttributes.getRequest();
+//        String ip = IPUtil.getIpAddress(request);
+//        ip = ip.replace(':','-');
+//        String path = "asset/" + ip + "/" + "Project.xml";
+        return clientService.getDiagramList(path + "/Project.xml");
     }
 
     @CrossOrigin
     @GetMapping("/getOWLConstraintList")
-    public Object getOWLConstraintList() throws DocumentException, FileNotFoundException {
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = servletRequestAttributes.getRequest();
-        String ip = IPUtil.getIpAddress(request);
-        ip = ip.replace(':','-');
-        String xmlPath = "asset/" + ip + "/" + "Project.xml";
-        String owlPath = "asset/" + ip + "/" + "environment.owl";
-        return clientService.getOWLConstraints(xmlPath, owlPath);
+    public Object getOWLConstraintList(String path) throws DocumentException, FileNotFoundException {
+//        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+//        HttpServletRequest request = servletRequestAttributes.getRequest();
+//        String ip = IPUtil.getIpAddress(request);
+//        ip = ip.replace(':','-');
+//        String xmlPath = "asset/" + ip + "/" + "Project.xml";
+//        String owlPath = "asset/" + ip + "/" + "environment.owl";
+        return clientService.getOWLConstraints(path + "/Project.xml", path + "/environment.owl");
     }
 
     @CrossOrigin
     @GetMapping("/getAllPhenomenonList")
-    public Object getAllPhenomenonList() throws DocumentException, FileNotFoundException {
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = servletRequestAttributes.getRequest();
-        String ip = IPUtil.getIpAddress(request);
-        ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.getAllPhenomenonList(path);
+    public Object getAllPhenomenonList(String path) throws DocumentException, FileNotFoundException {
+//        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+//        HttpServletRequest request = servletRequestAttributes.getRequest();
+//        String ip = IPUtil.getIpAddress(request);
+//        ip = ip.replace(':','-');
+//        String path = "asset/" + ip + "/" + "Project.xml";
+        return clientService.getAllPhenomenonList(path + "/Project.xml");
     }
     @CrossOrigin
     @GetMapping("/getAllReferenceList")
-    public Object getAllReferenceList() throws DocumentException, FileNotFoundException {
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = servletRequestAttributes.getRequest();
-        String ip = IPUtil.getIpAddress(request);
-        ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.getAllReferenceList(path);
+    public Object getAllReferenceList(String path) throws DocumentException, FileNotFoundException {
+//        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+//        HttpServletRequest request = servletRequestAttributes.getRequest();
+//        String ip = IPUtil.getIpAddress(request);
+//        ip = ip.replace(':','-');
+//        String path = "asset/" + ip + "/" + "Project.xml";
+        return clientService.getAllReferenceList(path + "/Project.xml");
     }
 
     @CrossOrigin
     @GetMapping("/getScenarioDiagramByDomain")
-    public Object getScenarioDiagramByDomain(int index, String domainText) throws DocumentException, FileNotFoundException {
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = servletRequestAttributes.getRequest();
-        String ip = IPUtil.getIpAddress(request);
-        ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.getScenarioDiagramByDomain(path, index, domainText);
+    public Object getScenarioDiagramByDomain(String path, int index, String domainText) throws DocumentException, FileNotFoundException {
+//        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+//        HttpServletRequest request = servletRequestAttributes.getRequest();
+//        String ip = IPUtil.getIpAddress(request);
+//        ip = ip.replace(':','-');
+//        String path = "asset/" + ip + "/" + "Project.xml";
+        return clientService.getScenarioDiagramByDomain(path + "/Project.xml", index, domainText);
     }
 
     @CrossOrigin
     @GetMapping("/canAddConstraint")
-    public Object canAddConstraint(int index, String from, String cons, String to, String boundedFrom, String boundedTo) throws DocumentException {
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = servletRequestAttributes.getRequest();
-        String ip = IPUtil.getIpAddress(request);
-        ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.canAddConstraint(path, index, from, to, cons ,boundedFrom, boundedTo);
+    public Object canAddConstraint(String path, int index, String from, String cons, String to, String boundedFrom, String boundedTo) throws DocumentException {
+//        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+//        HttpServletRequest request = servletRequestAttributes.getRequest();
+//        String ip = IPUtil.getIpAddress(request);
+//        ip = ip.replace(':','-');
+//        String path = "asset/" + ip + "/" + "Project.xml";
+        return clientService.canAddConstraint(path + "/Project.xml", index, from, to, cons ,boundedFrom, boundedTo);
     }
 
     @CrossOrigin
     @GetMapping("/ruleBasedCheck")
-    public String ruleBasedCheck() throws DocumentException {
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = servletRequestAttributes.getRequest();
-        String ip = IPUtil.getIpAddress(request);
-        ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.ruleBasedCheck(path);
+    public String ruleBasedCheck(String path) throws DocumentException {
+//        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+//        HttpServletRequest request = servletRequestAttributes.getRequest();
+//        String ip = IPUtil.getIpAddress(request);
+//        ip = ip.replace(':','-');
+//        String path = "asset/" + ip + "/" + "Project.xml";
+        return clientService.ruleBasedCheck(path + "/Project.xml");
     }
 
     @CrossOrigin
     @GetMapping("loadConstraintsXML")
-    public String loadConstraintsXML() throws DocumentException{
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = servletRequestAttributes.getRequest();
-        String ip = IPUtil.getIpAddress(request);
-        ip = ip.replace(':','-');
-        String path = "asset/" + ip + "/" + "addedConstraints.xml";
-        return clientService.loadConstraintsXML(path);
+    public String loadConstraintsXML(String path) throws DocumentException{
+//        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+//        HttpServletRequest request = servletRequestAttributes.getRequest();
+//        String ip = IPUtil.getIpAddress(request);
+//        ip = ip.replace(':','-');
+//        String path = "asset/" + ip + "/" + "addedConstraints.xml";
+        return clientService.loadConstraintsXML(path + "/addedConstraints.xml");
+    }
+
+    @CrossOrigin
+    @GetMapping("/showServerFiles")
+    public Object showServerFiles(String folderPath) throws DocumentException {
+        JSONObject result = new JSONObject();
+        if(folderPath == null || folderPath.trim().equals("")){
+            result.put("filelist","asset");
+        }
+        else{
+            File file = new File(folderPath);
+            if(file.isDirectory()){
+                String[] filelist = file.list();
+                result.put("filelist",filelist);
+            }
+            else{
+                result.put("filelist","noDir");
+            }
+        }
+        return result;
     }
 }
