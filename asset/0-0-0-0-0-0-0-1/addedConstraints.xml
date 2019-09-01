@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<AddedConstraints>
+  <constraint>int15.s Alternate int15.f</constraint>
+  <constraint>int16.f Alternate int16.s</constraint>
+  <constraint>int16.f Alternate int15.s</constraint>
+  <constraint>int16.f Alternate int15.s</constraint>
+  <constraint>int2 Alternate int1</constraint>
+  <constraint>TD1:int13state0 StrictPre int14state0</constraint>
+</AddedConstraints>

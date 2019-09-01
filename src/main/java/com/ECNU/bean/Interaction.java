@@ -36,6 +36,11 @@ public class Interaction implements Cloneable, Comparable<Interaction>, Serializ
         return this.y1 + this.y2 / 2;
     }
 
+    public int toNum(){
+        if(state == 0) return number;
+        else return number + 50;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if(obj instanceof Interaction){

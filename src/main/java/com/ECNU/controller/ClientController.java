@@ -4,7 +4,12 @@ import com.ECNU.bean.*;
 import com.ECNU.service.ClientService;
 import com.ECNU.util.Cors;
 import com.ECNU.util.IPUtil;
+import org.dom4j.Document;
 import org.dom4j.DocumentException;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
+import org.dom4j.io.OutputFormat;
+import org.dom4j.io.XMLWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -145,8 +150,8 @@ public class ClientController extends Cors{
     }
 
     @CrossOrigin
-    @GetMapping("/saveConstraintsTxtAndMyCCSL")
-    public void saveConstraintsTxtAndMyCCSL(String constraints) throws DocumentException, IOException {
+    @GetMapping("/saveConstraintsTxtAndXMLAndMyCCSL")
+    public void saveConstraintsTxtAndXMLAndMyCCSL(String constraints,String addedConstraints) throws DocumentException, IOException {
         ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = servletRequestAttributes.getRequest();
         String ip = IPUtil.getIpAddress(request);
@@ -157,9 +162,27 @@ public class ClientController extends Cors{
         if(!tmpFile.exists()) tmpFile.mkdir();
         String filePath = "asset/" + ip + "/" + "constraints.txt";
         BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(filePath));
+        Document document = DocumentHelper.createDocument();
+        Element root=document.addElement("AddedConstraints");
+        OutputFormat format = OutputFormat.createPrettyPrint();
+        format.setEncoding("utf-8");
         for(int i = 0;i < constraints.split(",").length;i++){
             bufferedWriter.write(constraints.split(",")[i]);
             bufferedWriter.newLine();
+        }
+        for(int i = 0;i < addedConstraints.split(",").length;i++){
+            Element node = root.addElement("constraint").addText(addedConstraints.split(",")[i]);
+        }
+        Writer out;
+        try {
+            out = new FileWriter("asset/" + ip + "/" + "addedConstraints.xml");
+            XMLWriter writer = new XMLWriter(out, format);
+            writer.write(document);
+            writer.close();
+            System.out.print("生成XML文件成功");
+        } catch (IOException e){
+            System.out.print("生成XML文件失败");
+            e.printStackTrace();
         }
         bufferedWriter.close();
         String path = "asset/" + ip;
@@ -339,12 +362,34 @@ public class ClientController extends Cors{
 
     @CrossOrigin
     @GetMapping("/canAddConstraint")
-    public Object canAddConstraint(int index, String from, String cons, String to, String boundedFrom, String boundedTo) throws DocumentException, FileNotFoundException {
+    public Object canAddConstraint(int index, String from, String cons, String to, String boundedFrom, String boundedTo) throws DocumentException {
         ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = servletRequestAttributes.getRequest();
         String ip = IPUtil.getIpAddress(request);
         ip = ip.replace(':','-');
         String path = "asset/" + ip + "/" + "Project.xml";
         return clientService.canAddConstraint(path, index, from, to, cons ,boundedFrom, boundedTo);
+    }
+
+    @CrossOrigin
+    @GetMapping("/ruleBasedCheck")
+    public String ruleBasedCheck() throws DocumentException {
+        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+        HttpServletRequest request = servletRequestAttributes.getRequest();
+        String ip = IPUtil.getIpAddress(request);
+        ip = ip.replace(':','-');
+        String path = "asset/" + ip + "/" + "Project.xml";
+        return clientService.ruleBasedCheck(path);
+    }
+
+    @CrossOrigin
+    @GetMapping("loadConstraintsXML")
+    public String loadConstraintsXML() throws DocumentException{
+        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+        HttpServletRequest request = servletRequestAttributes.getRequest();
+        String ip = IPUtil.getIpAddress(request);
+        ip = ip.replace(':','-');
+        String path = "asset/" + ip + "/" + "addedConstraints.xml";
+        return clientService.loadConstraintsXML(path);
     }
 }

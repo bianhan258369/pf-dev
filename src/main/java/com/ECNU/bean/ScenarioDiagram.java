@@ -338,6 +338,7 @@ public class ScenarioDiagram {
                 }
             }
 
+            /*
             LinkedList<Integer> replaces = new LinkedList<>();
             for(int i = 0;i < scenarios.size();i++){
                 Scenario tempChangjing = scenarios.get(i);
@@ -385,6 +386,7 @@ public class ScenarioDiagram {
                 newDians.add(dians.get(1));
                 scenarios.add(new Scenario(newDians, replace.getTo(), replace.getFrom(), replace.getState()));
             }
+            */
         }catch (DocumentException e) {
             e.printStackTrace();
         }

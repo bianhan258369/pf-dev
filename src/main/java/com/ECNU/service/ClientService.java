@@ -29,8 +29,10 @@ import java.util.*;
 
 @Data
 @Service
+@Scope("prototype")
 public class ClientService implements Serializable{
     private boolean[] visited;
+    private String circle;
 /*
     private void loadProjectXML(String path) throws DocumentException {
         List<ProblemDiagram> subProblemDiagrams = new LinkedList<>();
@@ -2619,18 +2621,19 @@ public class ClientService implements Serializable{
     }
 
     private boolean dfsCheckCircuit(boolean[][] graph, Interaction jiaohu, LinkedList<Interaction> jiaohus) {
-        if (visited[jiaohu.getNumber()]) {
+        if (visited[jiaohu.toNum()]) {
             return true;
         }
-        visited[jiaohu.getNumber()] = true;
+        visited[jiaohu.toNum()] = true;
         for(int i = 0;i < jiaohus.size();i++){
-            if(graph[jiaohu.getNumber()][jiaohus.get(i).getNumber()]){
+            if(graph[jiaohu.toNum()][jiaohus.get(i).toNum()]){
                 if(dfsCheckCircuit(graph, jiaohus.get(i),jiaohus)){
+                    circle = circle + (jiaohu.getState() + "," +jiaohu.getNumber()) + ";";
                     return true;
                 }
             }
         }
-        visited[jiaohu.getNumber()] = false;
+        visited[jiaohu.toNum()] = false;
         return false;
     }
 
@@ -2983,10 +2986,10 @@ public class ClientService implements Serializable{
         Rect domain = null;
         for(int i = 0;i < problemDiagram.getProblemDomains().size();i++){
             Rect rect = (Rect) problemDiagram.getProblemDomains().get(i);
-            System.out.println(rect.getText());
+            //System.out.println(rect.getText());
             if(rect.getText().equals(domainText)) domain = rect;
         }
-        System.out.println(domainText);
+        //System.out.println(domainText);
         //this.problemDiagram = Main.win.subProblemDiagrams[index];
         //this.intDiagram = (IntDiagram) Main.win.myIntDiagram.get(index).clone();
 
@@ -3136,6 +3139,96 @@ public class ClientService implements Serializable{
         List<Object> result = new LinkedList<>();
         for(int i = 0;i < nowJiaohu.size();i++) result.add(nowJiaohu.get(i));
         for(int i = 0;i < nowChangjing.size();i++) result.add(nowChangjing.get(i));
+        return result;
+    }
+
+    public String ruleBasedCheck(String path) throws DocumentException {
+        List<ScenarioDiagram> scenarioDiagrams = new LinkedList<>();
+        File file = new File(path);
+        SAXReader saxReader = new SAXReader();
+        Document project = saxReader.read(file);
+        Element rootElement = project.getRootElement();
+        Element filelist = rootElement.elementIterator("filelist").next();
+        int senCount = 1;
+        Element senList = filelist.elementIterator("SenarioFilelist").next();
+        for(Iterator it = senList.elementIterator("SenarioDiagram");it.hasNext();){
+            Element sd = (Element) it.next();
+            String sdPath = ProblemDiagram.getFilePath(file.getPath()) + sd.getText()+".xml";
+            File sdFile = new File(sdPath);
+            ScenarioDiagram intDiagram = new ScenarioDiagram("SenarioDiagram" + senCount,senCount,sdFile);
+            scenarioDiagrams.add(intDiagram);
+            senCount++;
+        }
+
+        circle = "{\"circle\":\"";
+        Outer:
+        for(int i = 0;i < scenarioDiagrams.size();i++){
+            ScenarioDiagram scenarioDiagram = scenarioDiagrams.get(i);
+            visited = new boolean[100];
+            boolean[][] graph = new boolean[100][100];
+            for(int m = 0;m < 100;m++){
+                for(int n = 0;n < 100;n++) graph[m][n] = false;
+            }
+
+            //initial graph and visited
+            List<Scenario> synchronize = new LinkedList<>();
+            for(int m = 0;m < 100;m++) visited[m] = false;
+            for(int m = 0;m < scenarioDiagram.getScenarios().size();m++){
+                Scenario scenario = scenarioDiagram.getScenarios().get(m);
+                int fromNum = scenario.getFrom().toNum();
+                int toNum = scenario.getTo().toNum();
+                if(scenario.getState() != 2) graph[fromNum][toNum] = true;
+                else synchronize.add(scenario);
+            }
+            for(int j = 0;j < Math.pow(2,synchronize.size());j++){
+                String bin = Integer.toBinaryString(j);
+                while(bin.length() < synchronize.size()) bin = "0" + bin;
+                System.out.println(bin);
+                for(int k = 0;k < synchronize.size();k++){
+                    if(bin.charAt(k) == '0') graph[synchronize.get(k).getFrom().toNum()][synchronize.get(k).getTo().toNum()] = true;
+                    else graph[synchronize.get(k).getTo().toNum()][synchronize.get(k).getFrom().toNum()] = true;
+                }
+                LinkedList<Interaction> jiaohus = scenarioDiagram.getInteractions();
+                for(int m = 0;m < jiaohus.size();m++){
+                    if(dfsCheckCircuit(graph, jiaohus.get(i),jiaohus)){
+                        circle = circle + i;
+                        break Outer;
+                    }
+                }
+            }
+        }
+        circle = circle + "\"}";
+        return circle;
+    }
+
+    //3:20,0 StrictPre 21,0/4:
+    public String loadConstraintsXML(String path) throws DocumentException {
+        String result = "{\"constraints\":\"";
+        File file = new File(path);
+        SAXReader saxReader = new SAXReader();
+        Document project = saxReader.read(file);
+        Element rootElement = project.getRootElement();
+        for(Iterator it = rootElement.elementIterator("constraint");it.hasNext();){
+            Element element = (Element) it.next();
+            //TD1:int13state0 StrictPre int14state0
+            String constraint = element.getText();
+            if(constraint.contains("TD")){
+                System.out.println(constraint);
+                String from = constraint.substring(constraint.indexOf(":") + 1).split(" ")[0];
+                String cons = constraint.substring(constraint.indexOf(":")).split(" ")[1];
+                String to = constraint.substring(constraint.indexOf(":")).split(" ")[2];
+                System.out.println(from);
+                System.out.println(cons);
+                System.out.println(to);
+                result = result + constraint.substring(2,constraint.indexOf(":")) + ':';
+                result = result + from.substring(3,from.indexOf("state")) + ",";
+                result = result + from.substring(from.indexOf("state") + 5) + " ";
+                result = result + cons + " ";
+                result = result + to.substring(3,to.indexOf("state")) + ",";
+                result = result + to.substring(to.indexOf("state") + 5) + "/";
+            }
+        }
+        result = result + "\"}";
         return result;
     }
 

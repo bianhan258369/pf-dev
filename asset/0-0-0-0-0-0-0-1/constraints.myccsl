@@ -1,4 +1,5 @@
 int1<int15
+int2<int16
 int13<int1
 int1<int14
 int14<int2
@@ -7,7 +8,6 @@ int14==int14
 int16<int13
 int13<int15
 int15<int14
-int16<int2
 int10<int19
 int11<int17
 int22<int18
@@ -66,3 +66,4 @@ int15.s<tmp3
 int2<int1
 tmp4=int2$1
 int1<tmp4
+TD1:int13<int14

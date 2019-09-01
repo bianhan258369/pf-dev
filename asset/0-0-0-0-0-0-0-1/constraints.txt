@@ -33,6 +33,7 @@ int27
 int30;
 
 int1 StrictPre int15;
+int2 StrictPre int16;
 int13 StrictPre int1;
 int1 StrictPre int14;
 int14 StrictPre int2;
@@ -41,7 +42,6 @@ int14 Coincidence int14;
 int16 StrictPre int13;
 int13 StrictPre int15;
 int15 StrictPre int14;
-int16 StrictPre int2;
 int10 StrictPre int19;
 int11 StrictPre int17;
 int22 StrictPre int18;
@@ -90,3 +90,4 @@ int16.f Alternate int16.s;
 int16.f Alternate int15.s;
 int16.f Alternate int15.s;
 int2 Alternate int1;
+TD1:int13 StrictPre int14;
