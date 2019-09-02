@@ -37,8 +37,8 @@ public class Interaction implements Cloneable, Comparable<Interaction>, Serializ
     }
 
     public int toNum(){
-        if(state == 0) return number;
-        else return number + 50;
+        if(state == 0) return (-1 * number);
+        else return number;
     }
 
     @Override

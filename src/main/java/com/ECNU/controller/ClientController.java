@@ -46,7 +46,6 @@ public class ClientController extends Cors{
         File tmpFile = new File("asset/" + ip);
         if(!tmpFile.exists()) tmpFile.mkdir();
         filePath = "asset/" + ip + "/" + filePath; // 这是文件的保存路径，如果不设置就会保存到项目的根目录
-        System.out.println(filePath);
         BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(filePath));
 
         outputStream.write(file.getBytes());
@@ -384,7 +383,6 @@ public class ClientController extends Cors{
 //        String ip = IPUtil.getIpAddress(request);
 //        ip = ip.replace(':','-');
 //        String path = "asset/" + ip + "/" + "addedConstraints.xml";
-        System.out.println(path + "/addedConstraints.xml");
         return clientService.loadConstraintsXML(path + "/addedConstraints.xml");
     }
 
@@ -392,7 +390,6 @@ public class ClientController extends Cors{
     @GetMapping("/showServerFiles")
     public Object showServerFiles(String folderPath){
         JSONObject result = new JSONObject();
-        System.out.println(folderPath);
         if(folderPath == null || folderPath.trim().equals("")){
             result.put("filelist","asset");
         }

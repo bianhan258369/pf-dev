@@ -420,29 +420,14 @@ public class ScenarioDiagram {
         this.interactions.add(jh);
     }
 
-    public void deletecj(Scenario cj) {
-        for (int i = 0; i <= this.scenarios.size() - 1; i++)
-            if (cj.equals(this.scenarios.get(i))) {
-                this.scenarios.remove(i);
-                break;
-            }
-    }
-
-    public void deletejh(Interaction jh) {
-        for (int i = 0; i <= this.interactions.size() - 1; i++) {
-            Interaction jht =  this.interactions.get(i);
-            if (jh.equals(jht)) {
-                this.interactions.remove(i);
-                for (int j = 0; j <= this.scenarios.size() - 1; j++) {
-                    Scenario cj = this.scenarios.get(j);
-                    if ((cj.getFrom().equals(jht)) || (cj.getTo().equals(jht))) {
-                        this.scenarios.remove(j);
-                        j--;
-                    }
-                }
-                break;
+    public Interaction getInteraction(int number, int state){
+        for(int i = 0;i < interactions.size();i++){
+            Interaction interaction = interactions.get(i);
+            if(interaction.getState() == state && interaction.getNumber() == number){
+                return interaction;
             }
         }
+        return null;
     }
 
     @Override

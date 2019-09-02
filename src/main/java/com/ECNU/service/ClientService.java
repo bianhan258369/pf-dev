@@ -5,9 +5,12 @@ import com.ECNU.FormatTransfer.ToMyCCSLFormat;
 import com.ECNU.FormatTransfer.ToNuSMVFormat;
 import com.ECNU.bean.*;
 import com.ECNU.util.IPUtil;
+import com.ECNU.util.TestCircle;
 import com.sun.corba.se.spi.ior.ObjectKey;
 import javafx.beans.binding.ObjectExpression;
 import lombok.Data;
+import org.apache.jena.ext.com.google.common.collect.BiMap;
+import org.apache.jena.ext.com.google.common.collect.HashBiMap;
 import org.apache.jena.ontology.*;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.dom4j.Document;
@@ -2620,23 +2623,7 @@ public class ClientService implements Serializable{
         return problemDiagram.getReference();
     }
 
-    private boolean dfsCheckCircuit(boolean[][] graph, Interaction jiaohu, LinkedList<Interaction> jiaohus) {
-        if (visited[jiaohu.toNum()]) {
-            return true;
-        }
-        visited[jiaohu.toNum()] = true;
-        for(int i = 0;i < jiaohus.size();i++){
-            if(graph[jiaohu.toNum()][jiaohus.get(i).toNum()]){
-                if(dfsCheckCircuit(graph, jiaohus.get(i),jiaohus)){
-                    circle = circle + (jiaohu.getState() + "," +jiaohu.getNumber()) + ";";
-                    return true;
-                }
-            }
-        }
-        visited[jiaohu.toNum()] = false;
-        return false;
-    }
-
+    //from/to : number,state
     public boolean canAddConstraint(String path, int index, String from, String to, String cons, String boundedFrom, String boundedTo) throws DocumentException {
         List<ScenarioDiagram> scenarioDiagrams = new LinkedList<>();
         File file = new File(path);
@@ -2655,74 +2642,204 @@ public class ClientService implements Serializable{
             senCount++;
         }
         if(cons.equals("StrictPre") || cons.equals("nStrictPre")){
-            visited = new boolean[100];
-            boolean[][] graph = new boolean[100][100];
             ScenarioDiagram scenarioDiagram = scenarioDiagrams.get(index);
-            for(int i = 0;i < 100;i++){
-                for(int j = 0;j < 100;j++) graph[i][j] = false;
+            int fromNum = Integer.parseInt(from.split(",")[0]);
+            int fromstate = Integer.parseInt(from.split(",")[1]);
+            int toNum = Integer.parseInt(to.split(",")[0]);
+            int toState = Integer.parseInt(to.split(",")[1]);
+            Interaction fromInt = scenarioDiagram.getInteraction(fromNum, fromstate);
+            Interaction toInt = scenarioDiagram.getInteraction(toNum, toState);
+            Scenario addedScenario = null;
+            if(fromstate == 0 && toState == 0) addedScenario = new Scenario(new LinkedList<String>(), fromInt, toInt, 1);
+            else if(fromstate == 1 && toState == 1) addedScenario = new Scenario(new LinkedList<String>(), fromInt, toInt, 3);
+            else if(fromstate == 0 && toState == 1) addedScenario = new Scenario(new LinkedList<String>(), fromInt, toInt, 0);
+            else addedScenario = new Scenario(new LinkedList<String>(), fromInt, toInt, 4);
+            scenarioDiagram.addChangjing(addedScenario);
+            //step1
+            BiMap<Integer, Integer> behMap = HashBiMap.create();
+            BiMap<Integer, Integer> expMap = HashBiMap.create();
+            for (int j = 0; j < scenarioDiagram.getInteractions().size(); j++) {
+                Interaction interaction = scenarioDiagram.getInteractions().get(j);
+                if (interaction.getState() == 0) behMap.put(interaction.getNumber(), behMap.size());
+                if (interaction.getState() == 1) expMap.put(interaction.getNumber(), expMap.size());
+            }
+            int behSize = behMap.size();
+            int expSize = expMap.size();
+            int[][] behGraph = new int[behSize][behSize];
+            int[][] expGraph = new int[expSize][expSize];
+
+
+            for (int m = 0; m < behSize; m++) {
+                for (int n = 0; n < behSize; n++) {
+                    behGraph[m][n] = 0;
+                }
+            }
+            for (int j = 0; j < scenarioDiagram.getScenarios().size(); j++) {
+                Scenario scenario = scenarioDiagram.getScenarios().get(j);
+                if (scenario.getFrom().getState() == 0 && scenario.getTo().getState() == 0) {
+                    behGraph[behMap.get(scenario.getFrom().getNumber())][behMap.get(scenario.getTo().getNumber())] = 1;
+                }
+            }
+            for (int m = 0; m < expSize; m++) {
+                for (int n = 0; n < expSize; n++) {
+                    expGraph[m][n] = 0;
+                }
+            }
+            for (int j = 0; j < scenarioDiagram.getScenarios().size(); j++) {
+                Scenario scenario = scenarioDiagram.getScenarios().get(j);
+                if (scenario.getFrom().getState() == 1 && scenario.getTo().getState() == 1) {
+                    expGraph[expMap.get(scenario.getFrom().getNumber())][expMap.get(scenario.getTo().getNumber())] = 1;
+                }
             }
 
-            //initial graph and visited
-            for(int i = 0;i < 100;i++) visited[i] = false;
-            graph[Integer.parseInt(from.substring(3))][Integer.parseInt(to.substring(3))] = true;
-            for(int i = 0;i < scenarioDiagram.getScenarios().size();i++){
-                Scenario scenario = scenarioDiagram.getScenarios().get(i);
-                int fromNum = scenario.getFrom().getNumber();
-                int toNum = scenario.getTo().getNumber();
-                if(scenario.getState() != 2) graph[fromNum][toNum] = true;
+            //step2
+            boolean behHaveCircle = false;
+            boolean expHaveCircle = false;
+            for(int j = 0;j < behSize;j++){
+                TestCircle behTc = new TestCircle(behSize, behGraph);
+                behTc.findCycle(j);
+                if(behTc.getHasCycle()){
+                    behHaveCircle = true;
+                    break;
+                }
             }
-            LinkedList<Interaction> jiaohus = scenarioDiagram.getInteractions();
-            for(int i = 0;i < jiaohus.size();i++){
-                if(dfsCheckCircuit(graph, jiaohus.get(i),jiaohus)){
-                    graph[Integer.parseInt(from.substring(3))][Integer.parseInt(to.substring(3))] = false;
-                    return false;
+            for(int j = 0;j < expSize;j++){
+                TestCircle expTc = new TestCircle(expSize, expGraph);
+                expTc.findCycle(j);
+                if(expTc.getHasCycle()){
+                    expHaveCircle = true;
+                    break;
+                }
+            }
+            if((behHaveCircle && !expHaveCircle)||(!behHaveCircle && expHaveCircle)) return false;
+            if(behHaveCircle && expHaveCircle){
+                Map<Integer, Boolean> coincidenceVisited = new HashMap<>();
+                for (int j = 0; j < scenarioDiagram.getScenarios().size(); j++) {
+                    Scenario scenario = scenarioDiagram.getScenarios().get(j);
+                    if (scenario.getState() == 2) coincidenceVisited.put(scenario.getTo().getNumber(), false);
+                }
+                if(coincidenceVisited.size() == 0) return false;
+                for (int j = 0; j < scenarioDiagram.getScenarios().size(); j++) {
+                    Scenario scenario = scenarioDiagram.getScenarios().get(j);
+                    if (scenario.getState() == 2 && !coincidenceVisited.get(scenario.getTo().getNumber())) {
+                        int behStart = -1;
+                        int expStart = -1;
+                        if (scenario.getFrom().getNumber() == 0 && scenario.getTo().getNumber() == 1) {
+                            behStart = behMap.get(scenario.getFrom().getNumber());
+                            expStart = expMap.get(scenario.getTo().getNumber());
+                        } else {
+                            behStart = behMap.get(scenario.getTo().getNumber());
+                            expStart = expMap.get(scenario.getFrom().getNumber());
+                        }
+                        TestCircle behTc = new TestCircle(behMap.size(), behGraph);
+                        TestCircle expTc = new TestCircle(expMap.size(), expGraph);
+                        behTc.findCycle(behStart);
+                        expTc.findCycle(expStart);
+                        if (behTc.getHasCycle() && expTc.getHasCycle()) {
+                            for (int m = 0; m < behTc.getCircles().size(); m++) {
+                                ArrayList<Integer> behCircle = behTc.getCircles().get(m);
+                                if (behMap.inverse().get(behCircle.get(0)) == behMap.inverse().get(behStart)) {
+                                    for (int n = 0; n < expTc.getCircles().size(); n++) {
+                                        ArrayList<Integer> expCircle = expTc.getCircles().get(n);
+                                        if (expMap.inverse().get(expCircle.get(0)) == expMap.inverse().get(expStart)) {
+                                            if (behMap.inverse().get(behCircle.get(behCircle.size() - 1)) == expMap.inverse().get(expCircle.get(expCircle.size() - 1))) {
+                                                if (coincidenceVisited.containsKey(behMap.inverse().get(behCircle.get(behCircle.size() - 1)))) {
+                                                    coincidenceVisited.put(behMap.inverse().get(behCircle.get(behCircle.size() - 1)), true);
+                                                }
+                                                break;
+                                            } else {
+                                                return false;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            //step3
+            BiMap<Integer, Integer> map = HashBiMap.create();
+            for(int j = 0;j < scenarioDiagram.getInteractions().size();j++){
+                Interaction interaction = scenarioDiagram.getInteractions().get(j);
+                map.put(interaction.toNum(),map.size());
+            }
+            int mapSize = map.size();
+            int[][] graph = new int[mapSize][mapSize];
+            for(int m = 0;m < mapSize;m++){
+                for(int n = 0;n < mapSize;n++){
+                    graph[m][n] = 0;
+                }
+            }
+
+            List<Scenario> synchronize = new LinkedList<>();
+            for(int j = 0;j < scenarioDiagram.getScenarios().size();j++){
+                Scenario scenario = scenarioDiagram.getScenarios().get(j);
+                if(scenario.getState() != 2){
+                    graph[map.get(scenario.getFrom().toNum())]
+                            [map.get(scenario.getTo().toNum())] = 1;
+                }
+                else {
+                    synchronize.add(scenario);
+                }
+            }
+            for(int j = 0;j < Math.pow(2,synchronize.size());j++){
+                String bin = Integer.toBinaryString(j);
+                while(bin.length() < synchronize.size()) bin = "0" + bin;
+                for(int k = 0;k < synchronize.size();k++){
+                    if(bin.charAt(k) == '0')
+                        graph[map.get(synchronize.get(k).getFrom().toNum())]
+                                [map.get(synchronize.get(k).getTo().toNum())] = 1;
+                    else
+                        graph[map.get(synchronize.get(k).getTo().toNum())]
+                                [map.get(synchronize.get(k).getFrom().toNum())] = 1;
+                }
+                for(int m = 0;m < scenarioDiagram.getScenarios().size();m++){
+                    Scenario scenario = scenarioDiagram.getScenarios().get(m);
+                    if(scenario.getState() == 0){
+                        Interaction interaction = scenario.getFrom();
+                        TestCircle tc = new TestCircle(mapSize, graph);
+                        tc.findCycle(map.get(interaction.toNum()));
+                        if(tc.getHasCycle()){
+                            for(int n = 0;n < tc.getCircles().size();n++){
+                                ArrayList<Integer> circles = tc.getCircles().get(n);
+                                if(map.inverse().get(circles.get(0)) == interaction.toNum()){
+                                    List<Integer> states = new LinkedList<>();
+                                    for(int t = 0;t < circles.size();t++){
+                                        if(map.inverse().get(circles.get(t)) > 0){
+                                            states.add(1);
+                                        }
+                                        else{
+                                            states.add(0);
+                                        }
+                                    }
+                                    if(states.contains(0) && states.contains(1)){
+                                        return false;
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+                for(int k = 0;k < synchronize.size();k++){
+                    if(bin.charAt(k) == '0')
+                        graph[map.get(synchronize.get(k).getFrom().toNum())]
+                                [map.get(synchronize.get(k).getTo().toNum())] = 0;
+                    else
+                        graph[map.get(synchronize.get(k).getTo().toNum())]
+                                [map.get(synchronize.get(k).getFrom().toNum())] = 0;
                 }
             }
             return true;
         }
         else if(cons.equals("BoundedDiff")){
             if(Integer.parseInt(boundedFrom) > 0){
-                ScenarioDiagram scenarioDiagram = scenarioDiagrams.get(index);
-                boolean[] visited = new boolean[100];
-                for(int i = 0;i < 100;i++) visited[i] = false;
-                boolean[][] graph = new boolean[100][100];
-                graph[Integer.parseInt(from.substring(3))][Integer.parseInt(to.substring(3))] = true;
-
-                for(int i = 0;i < scenarioDiagram.getScenarios().size();i++){
-                    Scenario changjing = scenarioDiagram.getScenarios().get(i);
-                    int fromNum = changjing.getFrom().getNumber();
-                    int toNum = changjing.getTo().getNumber();
-                    if(changjing.getState() != 2) graph[fromNum][toNum] = true;
-                }
-                LinkedList<Interaction> jiaohus = scenarioDiagram.getInteractions();
-                for(int i = 0;i < jiaohus.size();i++){
-                    if(dfsCheckCircuit(graph, jiaohus.get(i),jiaohus)){
-                        graph[Integer.parseInt(from.substring(3))][Integer.parseInt(to.substring(3))] = false;
-                        return false;
-                    }
-                }
-                return true;
+                return canAddConstraint(path, index, from, to, "StrictPre",null, null);
             }
             else if(Integer.parseInt(boundedTo) < 0){
-                ScenarioDiagram scenarioDiagram = scenarioDiagrams.get(index);
-                boolean[] visited = new boolean[100];
-                for(int i = 0;i < 100;i++) visited[i] = false;
-                boolean[][] graph = new boolean[100][100];
-                graph[Integer.parseInt(to.substring(3))][Integer.parseInt(from.substring(3))] = true;
-                for(int i = 0;i < scenarioDiagram.getScenarios().size();i++){
-                    Scenario changjing = scenarioDiagram.getScenarios().get(i);
-                    int fromNum = changjing.getFrom().getNumber();
-                    int toNum = changjing.getTo().getNumber();
-                    if(changjing.getState() != 2) graph[fromNum][toNum] = true;
-                }
-                LinkedList<Interaction> jiaohus = scenarioDiagram.getInteractions();
-                for(int i = 0;i < jiaohus.size();i++){
-                    if(dfsCheckCircuit(graph, jiaohus.get(i),jiaohus)){
-                        graph[Integer.parseInt(from.substring(3))][Integer.parseInt(to.substring(3))] = false;
-                        return false;
-                    }
-                }
-                return true;
+                return canAddConstraint(path, index, to, from, "StrictPre",null, null);
             }
         }
         return true;
@@ -3161,39 +3278,225 @@ public class ClientService implements Serializable{
         }
 
         circle = "{\"circle\":\"";
+        //step1 : 使用两个BiMap 分别将行为交互与期望交互的编号映射到0至交互数量 然后根据这个映射创建行为交互与期望交互对应的graph
+        //step2 : 遍历state为2的场景（coincidence）这个场景的from与to一定分别为行为交互和期望交互 分别寻找以它们为起点的循环 如果这两个循环的首尾编号都相同 则没问题
+        //step3 : 考虑行为交互和期望交互之间的循环，只需考虑从每一个state为0的场景的from交互即可
         Outer:
-        for(int i = 0;i < scenarioDiagrams.size();i++){
+        for(int i = 0;i < scenarioDiagrams.size();i++) {
             ScenarioDiagram scenarioDiagram = scenarioDiagrams.get(i);
-            visited = new boolean[100];
-            boolean[][] graph = new boolean[100][100];
-            for(int m = 0;m < 100;m++){
-                for(int n = 0;n < 100;n++) graph[m][n] = false;
+
+            //step1
+            BiMap<Integer, Integer> behMap = HashBiMap.create();
+            BiMap<Integer, Integer> expMap = HashBiMap.create();
+            for (int j = 0; j < scenarioDiagram.getInteractions().size(); j++) {
+                Interaction interaction = scenarioDiagram.getInteractions().get(j);
+                if (interaction.getState() == 0) behMap.put(interaction.getNumber(), behMap.size());
+                if (interaction.getState() == 1) expMap.put(interaction.getNumber(), expMap.size());
+            }
+            int behSize = behMap.size();
+            int expSize = expMap.size();
+            int[][] behGraph = new int[behSize][behSize];
+            int[][] expGraph = new int[expSize][expSize];
+
+
+            for (int m = 0; m < behSize; m++) {
+                for (int n = 0; n < behSize; n++) {
+                    behGraph[m][n] = 0;
+                }
+            }
+            for (int j = 0; j < scenarioDiagram.getScenarios().size(); j++) {
+                Scenario scenario = scenarioDiagram.getScenarios().get(j);
+                if (scenario.getFrom().getState() == 0 && scenario.getTo().getState() == 0) {
+                    behGraph[behMap.get(scenario.getFrom().getNumber())][behMap.get(scenario.getTo().getNumber())] = 1;
+                }
+            }
+            for (int m = 0; m < expSize; m++) {
+                for (int n = 0; n < expSize; n++) {
+                    expGraph[m][n] = 0;
+                }
+            }
+            for (int j = 0; j < scenarioDiagram.getScenarios().size(); j++) {
+                Scenario scenario = scenarioDiagram.getScenarios().get(j);
+                if (scenario.getFrom().getState() == 1 && scenario.getTo().getState() == 1) {
+                    expGraph[expMap.get(scenario.getFrom().getNumber())][expMap.get(scenario.getTo().getNumber())] = 1;
+                }
             }
 
-            //initial graph and visited
+
+            //step2
+            boolean behHaveCircle = false;
+            boolean expHaveCircle = false;
+            for(int j = 0;j < behSize;j++){
+                TestCircle behTc = new TestCircle(behSize, behGraph);
+                behTc.findCycle(j);
+                if(behTc.getHasCycle()){
+                    behHaveCircle = true;
+                    break;
+                }
+            }
+            for(int j = 0;j < expSize;j++){
+                TestCircle expTc = new TestCircle(expSize, expGraph);
+                expTc.findCycle(j);
+                if(expTc.getHasCycle()){
+                    expHaveCircle = true;
+                    break;
+                }
+            }
+            if(behHaveCircle && !expHaveCircle){
+                circle = circle + "Behaviour Interactions Exist Circle";
+                circle = circle + ";" + i;
+                circle = circle + "\"}";
+                return circle;
+            }
+            if(!behHaveCircle && expHaveCircle){
+                circle = circle + "Expect Interactions Exist Circle";
+                circle = circle + ";" + i;
+                circle = circle + "\"}";
+                return circle;
+            }
+            Map<Integer, Boolean> coincidenceVisited = new HashMap<>();
+            for (int j = 0; j < scenarioDiagram.getScenarios().size(); j++) {
+                Scenario scenario = scenarioDiagram.getScenarios().get(j);
+                if (scenario.getState() == 2) coincidenceVisited.put(scenario.getTo().getNumber(), false);
+            }
+            if(coincidenceVisited.size() == 0){
+                circle = circle + "Both Expect Interactions And Behaviour Interactions Have Circle";
+                circle = circle + ";" + i;
+                circle = circle + "\"}";
+                return circle;
+            }
+            for (int j = 0; j < scenarioDiagram.getScenarios().size(); j++) {
+                Scenario scenario = scenarioDiagram.getScenarios().get(j);
+                if (scenario.getState() == 2 && !coincidenceVisited.get(scenario.getTo().getNumber())) {
+                    int behStart = -1;
+                    int expStart = -1;
+                    if (scenario.getFrom().getNumber() == 0 && scenario.getTo().getNumber() == 1) {
+                        behStart = behMap.get(scenario.getFrom().getNumber());
+                        expStart = expMap.get(scenario.getTo().getNumber());
+                    } else {
+                        behStart = behMap.get(scenario.getTo().getNumber());
+                        expStart = expMap.get(scenario.getFrom().getNumber());
+                    }
+                    TestCircle behTc = new TestCircle(behMap.size(), behGraph);
+                    TestCircle expTc = new TestCircle(expMap.size(), expGraph);
+                    behTc.findCycle(behStart);
+                    expTc.findCycle(expStart);
+                    if (behTc.getHasCycle() && expTc.getHasCycle()) {
+                        for (int m = 0; m < behTc.getCircles().size(); m++) {
+                            ArrayList<Integer> behCircle = behTc.getCircles().get(m);
+                            if (behMap.inverse().get(behCircle.get(0)) == behMap.inverse().get(behStart)) {
+                                System.out.println(behMap.inverse().get(behCircle.get(0)));
+                                System.out.println(behMap.inverse().get(behStart));
+                                for (int n = 0; n < expTc.getCircles().size(); n++) {
+                                    ArrayList<Integer> expCircle = expTc.getCircles().get(n);
+                                    if (expMap.inverse().get(expCircle.get(0)) == expMap.inverse().get(expStart)) {
+                                        System.out.println(expMap.inverse().get(expCircle.get(0)));
+                                        System.out.println(expMap.inverse().get(expStart));
+
+                                        System.out.println(behMap.inverse().get(behCircle.get(behCircle.size() - 1)));
+                                        System.out.println(expMap.inverse().get(expCircle.get(expCircle.size() - 1)));
+                                        if (behMap.inverse().get(behCircle.get(behCircle.size() - 1)) == expMap.inverse().get(expCircle.get(expCircle.size() - 1))) {
+                                            if (coincidenceVisited.containsKey(behMap.inverse().get(behCircle.get(behCircle.size() - 1)))) {
+                                                coincidenceVisited.put(behMap.inverse().get(behCircle.get(behCircle.size() - 1)), true);
+                                            }
+                                            break;
+                                        } else {
+                                            circle = circle + "Both Expect Interactions And Behaviour Interactions Have Circle";
+                                            circle = circle + ";" + i;
+                                            circle = circle + "\"}";
+                                            return circle;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            //step3
+            BiMap<Integer, Integer> map = HashBiMap.create();
+            for(int j = 0;j < scenarioDiagram.getInteractions().size();j++){
+                Interaction interaction = scenarioDiagram.getInteractions().get(j);
+                map.put(interaction.toNum(),map.size());
+            }
+            int mapSize = map.size();
+            int[][] graph = new int[mapSize][mapSize];
+            for(int m = 0;m < mapSize;m++){
+                for(int n = 0;n < mapSize;n++){
+                    graph[m][n] = 0;
+                }
+            }
+
             List<Scenario> synchronize = new LinkedList<>();
-            for(int m = 0;m < 100;m++) visited[m] = false;
-            for(int m = 0;m < scenarioDiagram.getScenarios().size();m++){
-                Scenario scenario = scenarioDiagram.getScenarios().get(m);
-                int fromNum = scenario.getFrom().toNum();
-                int toNum = scenario.getTo().toNum();
-                if(scenario.getState() != 2) graph[fromNum][toNum] = true;
-                else synchronize.add(scenario);
+            for(int j = 0;j < scenarioDiagram.getScenarios().size();j++){
+                Scenario scenario = scenarioDiagram.getScenarios().get(j);
+                if(scenario.getState() != 2){
+                    graph[map.get(scenario.getFrom().toNum())]
+                            [map.get(scenario.getTo().toNum())] = 1;
+                }
+                else {
+                    synchronize.add(scenario);
+                }
             }
             for(int j = 0;j < Math.pow(2,synchronize.size());j++){
                 String bin = Integer.toBinaryString(j);
                 while(bin.length() < synchronize.size()) bin = "0" + bin;
-                System.out.println(bin);
                 for(int k = 0;k < synchronize.size();k++){
-                    if(bin.charAt(k) == '0') graph[synchronize.get(k).getFrom().toNum()][synchronize.get(k).getTo().toNum()] = true;
-                    else graph[synchronize.get(k).getTo().toNum()][synchronize.get(k).getFrom().toNum()] = true;
+                    if(bin.charAt(k) == '0')
+                        graph[map.get(synchronize.get(k).getFrom().toNum())]
+                                [map.get(synchronize.get(k).getTo().toNum())] = 1;
+                    else
+                        graph[map.get(synchronize.get(k).getTo().toNum())]
+                                [map.get(synchronize.get(k).getFrom().toNum())] = 1;
                 }
-                LinkedList<Interaction> jiaohus = scenarioDiagram.getInteractions();
-                for(int m = 0;m < jiaohus.size();m++){
-                    if(dfsCheckCircuit(graph, jiaohus.get(i),jiaohus)){
-                        circle = circle + i;
-                        break Outer;
+                for(int m = 0;m < scenarioDiagram.getScenarios().size();m++){
+                    Scenario scenario = scenarioDiagram.getScenarios().get(m);
+                    if(scenario.getState() == 0){
+                        Interaction interaction = scenario.getFrom();
+                        TestCircle tc = new TestCircle(mapSize, graph);
+                        tc.findCycle(map.get(interaction.toNum()));
+                        if(tc.getHasCycle()){
+                            for(int n = 0;n < tc.getCircles().size();n++){
+                                ArrayList<Integer> circles = tc.getCircles().get(n);
+                                if(map.inverse().get(circles.get(0)) == interaction.toNum()){
+                                    List<Integer> states = new LinkedList<>();
+                                    for(int t = 0;t < circles.size();t++){
+                                        if(map.inverse().get(circles.get(t)) > 0){
+                                            states.add(1);
+                                        }
+                                        else{
+                                            states.add(0);
+                                        }
+                                    }
+                                    if(states.contains(0) && states.contains(1)){
+                                        for(int t = 0;t < circles.size();t++){
+                                            if(map.inverse().get(circles.get(t)) > 0){
+                                                circle = circle + "1" + "," + map.inverse().get(circles.get(t));
+                                                circle = circle + ";";
+                                            }
+                                            else{
+                                                circle = circle + "0" + "," + (-1 * map.inverse().get(circles.get(t)));
+                                                circle = circle + ";";
+                                            }
+                                        }
+                                        circle = circle + i;
+                                        circle = circle + "\"}";
+                                        return circle;
+                                    }
+                                }
+
+                            }
+                        }
                     }
+                }
+                for(int k = 0;k < synchronize.size();k++){
+                    if(bin.charAt(k) == '0')
+                        graph[map.get(synchronize.get(k).getFrom().toNum())]
+                                [map.get(synchronize.get(k).getTo().toNum())] = 0;
+                    else
+                        graph[map.get(synchronize.get(k).getTo().toNum())]
+                                [map.get(synchronize.get(k).getFrom().toNum())] = 0;
                 }
             }
         }
@@ -3213,13 +3516,9 @@ public class ClientService implements Serializable{
             //TD1:int13state0 StrictPre int14state0
             String constraint = element.getText();
             if(constraint.contains("TD")){
-                System.out.println(constraint);
                 String from = constraint.substring(constraint.indexOf(":") + 1).split(" ")[0];
                 String cons = constraint.substring(constraint.indexOf(":")).split(" ")[1];
                 String to = constraint.substring(constraint.indexOf(":")).split(" ")[2];
-                System.out.println(from);
-                System.out.println(cons);
-                System.out.println(to);
                 result = result + constraint.substring(2,constraint.indexOf(":")) + ':';
                 result = result + from.substring(3,from.indexOf("state")) + ",";
                 result = result + from.substring(from.indexOf("state") + 5) + " ";
