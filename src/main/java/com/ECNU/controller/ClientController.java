@@ -371,20 +371,22 @@ public class ClientController extends Cors{
     }
 
     @CrossOrigin
-    @GetMapping("loadConstraintsXML")
+    @GetMapping("/loadConstraintsXML")
     public String loadConstraintsXML(String path) throws DocumentException{
 //        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
 //        HttpServletRequest request = servletRequestAttributes.getRequest();
 //        String ip = IPUtil.getIpAddress(request);
 //        ip = ip.replace(':','-');
 //        String path = "asset/" + ip + "/" + "addedConstraints.xml";
+        System.out.println(path + "/addedConstraints.xml");
         return clientService.loadConstraintsXML(path + "/addedConstraints.xml");
     }
 
     @CrossOrigin
     @GetMapping("/showServerFiles")
-    public Object showServerFiles(String folderPath) throws DocumentException {
+    public Object showServerFiles(String folderPath){
         JSONObject result = new JSONObject();
+        System.out.println(folderPath);
         if(folderPath == null || folderPath.trim().equals("")){
             result.put("filelist","asset");
         }
