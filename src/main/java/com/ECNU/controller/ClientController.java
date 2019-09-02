@@ -174,7 +174,13 @@ public class ClientController extends Cors{
             bufferedWriter.newLine();
         }
         for(int i = 0;i < addedConstraints.split(",").length;i++){
-            Element node = root.addElement("constraint").addText(addedConstraints.split(",")[i]);
+            String addedConstraint = addedConstraints.split(",")[i];
+            if(addedConstraint.contains("TD")){
+                String oldIndex = addedConstraint.substring(2, addedConstraint.indexOf(":"));
+                String newIndex = ((Integer)(Integer.parseInt(addedConstraint.substring(2, addedConstraint.indexOf(":"))) - 1)).toString();
+                addedConstraint = addedConstraint.replaceFirst(oldIndex, newIndex);
+            }
+            Element node = root.addElement("constraint").addText(addedConstraint);
         }
         Writer out;
         try {

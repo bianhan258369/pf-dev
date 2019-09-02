@@ -90,4 +90,4 @@ int16.f Alternate int16.s;
 int16.f Alternate int15.s;
 int16.f Alternate int15.s;
 int2 Alternate int1;
-TD1:int13 StrictPre int14;
+TD1:int13state0 StrictPre int14state0;
