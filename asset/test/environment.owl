@@ -1,0 +1,606 @@
+<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns="http://www.owl-ontologies.com/Ontology1242111423.owl#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+  xml:base="http://www.owl-ontologies.com/Ontology1242111423.owl">
+  <owl:Ontology rdf:about=""/>
+  <owl:Class rdf:ID="Display_Unit">
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="CausalEntity"/>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:ID="has_static"/>
+        </owl:onProperty>
+        <owl:allValuesFrom>
+          <owl:Class rdf:ID="pkgID"/>
+        </owl:allValuesFrom>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#has_static"/>
+        </owl:onProperty>
+        <owl:allValuesFrom>
+          <owl:Class rdf:ID="bin"/>
+        </owl:allValuesFrom>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#has_static"/>
+        </owl:onProperty>
+        <owl:allValuesFrom>
+          <owl:Class rdf:ID="destn"/>
+        </owl:allValuesFrom>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="Package_Conveyer_SM">
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="StateMachine"/>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:ID="has_state"/>
+        </owl:onProperty>
+        <owl:allValuesFrom>
+          <owl:Class rdf:ID="Stopped"/>
+        </owl:allValuesFrom>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#has_state"/>
+        </owl:onProperty>
+        <owl:allValuesFrom>
+          <owl:Class rdf:ID="Running"/>
+        </owl:allValuesFrom>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:ID="has_trans"/>
+        </owl:onProperty>
+        <owl:allValuesFrom>
+          <owl:Class rdf:ID="trans_stopped_running"/>
+        </owl:allValuesFrom>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#has_trans"/>
+        </owl:onProperty>
+        <owl:allValuesFrom>
+          <owl:Class rdf:ID="trans_running_stopped"/>
+        </owl:allValuesFrom>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:ID="has_inout"/>
+        </owl:onProperty>
+        <owl:allValuesFrom>
+          <owl:Class rdf:ID="Onc"/>
+        </owl:allValuesFrom>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#has_inout"/>
+        </owl:onProperty>
+        <owl:allValuesFrom>
+          <owl:Class rdf:ID="Offc"/>
+        </owl:allValuesFrom>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >state machine for package conveyer</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="Destination_Informant">
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="BidableEntity"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#BidableEntity">
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="EnviornmentEntity"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="LexicalEntity">
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#EnviornmentEntity"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="senseOni1">
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="State"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="Attribute">
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#EnviornmentEntity"/>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  </owl:Class>
+  <owl:Class rdf:ID="Value"/>
+  <owl:Class rdf:ID="swPos_i_left">
+    <rdfs:subClassOf rdf:resource="#State"/>
+  </owl:Class>
+  <owl:Class rdf:ID="senseOni">
+    <rdfs:subClassOf rdf:resource="#State"/>
+  </owl:Class>
+  <owl:Class rdf:ID="sensor">
+    <rdfs:subClassOf rdf:resource="#Attribute"/>
+  </owl:Class>
+  <owl:Class rdf:about="#CausalEntity">
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#EnviornmentEntity"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="Router">
+    <rdfs:subClassOf rdf:resource="#CausalEntity"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#has_static"/>
+        </owl:onProperty>
+        <owl:allValuesFrom>
+          <owl:Class rdf:ID="pipe"/>
+        </owl:allValuesFrom>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom>
+          <owl:Class rdf:ID="switch"/>
+        </owl:allValuesFrom>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#has_static"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="#sensor"/>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#has_static"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom>
+          <owl:Class rdf:ID="Router_SM"/>
+        </owl:allValuesFrom>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:ID="has_dynamic"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A router includes pipes, swithes and seners.</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="Transition"/>
+  <owl:Class rdf:about="#Offc">
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Event"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="Package_SM">
+    <rdfs:subClassOf rdf:resource="#StateMachine"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#has_state"/>
+        </owl:onProperty>
+        <owl:allValuesFrom rdf:resource="#senseOni"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#has_state"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="#senseOni1"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#has_trans"/>
+        </owl:onProperty>
+        <owl:allValuesFrom>
+          <owl:Class rdf:ID="trans_senseOn_i_1"/>
+        </owl:allValuesFrom>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom>
+          <owl:Class rdf:ID="package_comes_to_sensor_i1"/>
+        </owl:allValuesFrom>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#has_inout"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#package_comes_to_sensor_i1">
+    <rdfs:subClassOf rdf:resource="#Event"/>
+  </owl:Class>
+  <owl:Class rdf:about="#trans_senseOn_i_1">
+    <rdfs:subClassOf rdf:resource="#Transition"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="#senseOni"/>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:ID="source_from"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:ID="sink_to"/>
+        </owl:onProperty>
+        <owl:allValuesFrom rdf:resource="#senseOni1"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:ID="trigger"/>
+        </owl:onProperty>
+        <owl:allValuesFrom rdf:resource="#package_comes_to_sensor_i1"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="Package">
+    <rdfs:subClassOf rdf:resource="#CausalEntity"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#has_static"/>
+        </owl:onProperty>
+        <owl:allValuesFrom>
+          <owl:Class rdf:ID="label"/>
+        </owl:allValuesFrom>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="#Package_SM"/>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#has_dynamic"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#Router_SM">
+    <rdfs:subClassOf rdf:resource="#StateMachine"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#has_state"/>
+        </owl:onProperty>
+        <owl:allValuesFrom rdf:resource="#swPos_i_left"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom>
+          <owl:Class rdf:ID="swPos_i_right"/>
+        </owl:allValuesFrom>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#has_state"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom>
+          <owl:Class rdf:ID="trans_left_right"/>
+        </owl:allValuesFrom>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#has_trans"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom>
+          <owl:Class rdf:ID="trans_right_left"/>
+        </owl:allValuesFrom>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#has_trans"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom>
+          <owl:Class rdf:ID="set_switch_i_left"/>
+        </owl:allValuesFrom>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#has_inout"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom>
+          <owl:Class rdf:ID="set_swtich_i_right"/>
+        </owl:allValuesFrom>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#has_inout"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#Stopped">
+    <rdfs:subClassOf rdf:resource="#State"/>
+  </owl:Class>
+  <owl:Class rdf:about="#label">
+    <rdfs:subClassOf rdf:resource="#Attribute"/>
+  </owl:Class>
+  <owl:Class rdf:ID="Router_Informant">
+    <rdfs:subClassOf rdf:resource="#BidableEntity"/>
+  </owl:Class>
+  <owl:Class rdf:about="#swPos_i_right">
+    <rdfs:subClassOf rdf:resource="#State"/>
+  </owl:Class>
+  <owl:Class rdf:ID="Package_Conveyor">
+    <rdfs:subClassOf rdf:resource="#CausalEntity"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="#Package_Conveyer_SM"/>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#has_dynamic"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#set_switch_i_left">
+    <rdfs:subClassOf rdf:resource="#Event"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Onc">
+    <rdfs:subClassOf rdf:resource="#Event"/>
+  </owl:Class>
+  <owl:Class rdf:about="#EnviornmentEntity">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Entity which will interact with the to-be system.</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:about="#pkgID">
+    <rdfs:subClassOf rdf:resource="#Attribute"/>
+  </owl:Class>
+  <owl:Class rdf:ID="Router_Operator">
+    <rdfs:subClassOf rdf:resource="#BidableEntity"/>
+  </owl:Class>
+  <owl:Class rdf:about="#set_swtich_i_right">
+    <rdfs:subClassOf rdf:resource="#Event"/>
+  </owl:Class>
+  <owl:Class rdf:about="#pipe">
+    <rdfs:subClassOf rdf:resource="#Attribute"/>
+  </owl:Class>
+  <owl:Class rdf:about="#trans_left_right">
+    <rdfs:subClassOf rdf:resource="#Transition"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#source_from"/>
+        </owl:onProperty>
+        <owl:allValuesFrom rdf:resource="#swPos_i_left"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#sink_to"/>
+        </owl:onProperty>
+        <owl:allValuesFrom rdf:resource="#swPos_i_right"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#trigger"/>
+        </owl:onProperty>
+        <owl:allValuesFrom rdf:resource="#set_swtich_i_right"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#trans_running_stopped">
+    <rdfs:subClassOf rdf:resource="#Transition"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom>
+          <owl:Class rdf:about="#Running"/>
+        </owl:allValuesFrom>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#source_from"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#sink_to"/>
+        </owl:onProperty>
+        <owl:allValuesFrom rdf:resource="#Stopped"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#trigger"/>
+        </owl:onProperty>
+        <owl:allValuesFrom rdf:resource="#Offc"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#bin">
+    <rdfs:subClassOf rdf:resource="#Attribute"/>
+  </owl:Class>
+  <owl:Class rdf:about="#destn">
+    <rdfs:subClassOf rdf:resource="#Attribute"/>
+  </owl:Class>
+  <owl:Class rdf:about="#trans_stopped_running">
+    <rdfs:subClassOf rdf:resource="#Transition"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="#Stopped"/>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#source_from"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#sink_to"/>
+        </owl:onProperty>
+        <owl:allValuesFrom>
+          <owl:Class rdf:about="#Running"/>
+        </owl:allValuesFrom>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="#Onc"/>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#trigger"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#trans_right_left">
+    <rdfs:subClassOf rdf:resource="#Transition"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="#swPos_i_right"/>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#source_from"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="#swPos_i_left"/>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#sink_to"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#trigger"/>
+        </owl:onProperty>
+        <owl:allValuesFrom rdf:resource="#set_swtich_i_right"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#switch">
+    <rdfs:subClassOf rdf:resource="#Attribute"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Running">
+    <rdfs:subClassOf rdf:resource="#State"/>
+  </owl:Class>
+  <owl:Class rdf:ID="Reading_Machine">
+    <rdfs:subClassOf rdf:resource="#CausalEntity"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#has_static"/>
+        </owl:onProperty>
+        <owl:allValuesFrom rdf:resource="#label"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#has_static"/>
+        </owl:onProperty>
+        <owl:allValuesFrom rdf:resource="#pkgID"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="#destn"/>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#has_static"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:ObjectProperty rdf:about="#trigger">
+    <rdfs:domain rdf:resource="#Event"/>
+    <rdfs:range rdf:resource="#Transition"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#source_from">
+    <rdfs:range rdf:resource="#State"/>
+    <rdfs:domain rdf:resource="#Transition"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="issue">
+    <rdfs:domain>
+      <owl:Class>
+        <owl:unionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#BidableEntity"/>
+          <owl:Class rdf:about="#CausalEntity"/>
+        </owl:unionOf>
+      </owl:Class>
+    </rdfs:domain>
+    <rdfs:range rdf:resource="#Event"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#has_static">
+    <rdfs:domain rdf:resource="#EnviornmentEntity"/>
+    <rdfs:range rdf:resource="#Attribute"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#has_dynamic">
+    <rdfs:domain rdf:resource="#CausalEntity"/>
+    <rdfs:range rdf:resource="#StateMachine"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="cause">
+    <rdfs:range rdf:resource="#Transition"/>
+    <rdfs:domain rdf:resource="#Event"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#has_trans">
+    <rdfs:range rdf:resource="#Transition"/>
+    <rdfs:domain rdf:resource="#StateMachine"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#has_inout">
+    <rdfs:domain rdf:resource="#StateMachine"/>
+    <rdfs:range rdf:resource="#Event"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#has_state">
+    <rdfs:domain rdf:resource="#StateMachine"/>
+    <rdfs:range rdf:resource="#State"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#sink_to">
+    <rdfs:range rdf:resource="#State"/>
+    <rdfs:domain rdf:resource="#Transition"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="partof">
+    <rdfs:range rdf:resource="#EnviornmentEntity"/>
+    <rdfs:domain rdf:resource="#EnviornmentEntity"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="has_value">
+    <rdfs:domain rdf:resource="#Attribute"/>
+    <rdfs:range rdf:resource="#Value"/>
+  </owl:ObjectProperty>
+</rdf:RDF>
+
+<!-- Created with Protege (with OWL Plugin 3.3.1, Build 430)  http://protege.stanford.edu -->

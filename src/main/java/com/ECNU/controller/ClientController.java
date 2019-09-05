@@ -1,18 +1,23 @@
 package com.ECNU.controller;
 
-import com.ECNU.bean.*;
 import com.ECNU.service.ClientService;
 import com.ECNU.util.Cors;
+import com.ECNU.util.GitUtil;
 import com.ECNU.util.IPUtil;
-import com.fasterxml.jackson.databind.util.JSONPObject;
-import com.github.jsonldjava.utils.Obj;
 import net.sf.json.JSONObject;
+import org.apache.tomcat.util.http.fileupload.FileItem;
+import org.apache.tomcat.util.http.fileupload.FileUploadException;
+import org.apache.tomcat.util.http.fileupload.disk.DiskFileItemFactory;
+import org.apache.tomcat.util.http.fileupload.servlet.ServletFileUpload;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Repository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -22,9 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 @RestController
 @CrossOrigin
@@ -32,41 +35,63 @@ import java.util.List;
 public class ClientController extends Cors{
     @Autowired
     ClientService clientService;
+    private final String ROOTADDRESS = "E:\\JavaProject\\pfdev\\GitRepository\\";
 
     @CrossOrigin
     @RequestMapping("/upload")
-    public String upload(@RequestParam("uploadedFiles") MultipartFile file) throws IOException {
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = servletRequestAttributes.getRequest();
-        String ip = IPUtil.getIpAddress(request);
-        ip = ip.replace(':','-');
-        String filePath = file.getOriginalFilename(); // 获取文件的名称
-        File assetFile = new File("asset");
-        if(!assetFile.exists()) assetFile.mkdir();
-        File tmpFile = new File("asset/" + ip);
-        if(!tmpFile.exists()) tmpFile.mkdir();
-        filePath = "asset/" + ip + "/" + filePath; // 这是文件的保存路径，如果不设置就会保存到项目的根目录
-        BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(filePath));
-
-        outputStream.write(file.getBytes());
-        outputStream.flush();
-        outputStream.close();
+    public String upload(@RequestParam("uploadedFiles") MultipartFile files) throws Exception {
+        String branch = "test";
+        File file = new File(ROOTADDRESS);
+        if(!file.exists()){
+            try {
+                Repository repository = GitUtil.createRepository(ROOTADDRESS);
+                GitUtil.RecordUploadProjAt("upload",ROOTADDRESS,ROOTADDRESS);
+            } catch (GitAPIException e) {
+                e.printStackTrace();
+            }
+        }
+        if(!GitUtil.branchNameExist(branch,ROOTADDRESS)){
+            GitUtil.createBranch(branch, ROOTADDRESS);
+        }
+        try {
+            GitUtil.gitCheckout(branch,ROOTADDRESS);
+            GitUtil.currentBranch(ROOTADDRESS);
+            BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(ROOTADDRESS + files.getOriginalFilename()));
+            outputStream.write(files.getBytes());
+            outputStream.flush();
+            outputStream.close();
+            GitUtil.RecordUploadProjAt("upload",ROOTADDRESS, ".");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return "Upload Success";
     }
 
     @CrossOrigin
     @GetMapping("/downloadMyCCSLFile")
-    public void download() throws IOException {
+    public void download() throws Exception {
         ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = servletRequestAttributes.getRequest();
         HttpServletResponse response = servletRequestAttributes.getResponse();
-        String ip = IPUtil.getIpAddress(request);
-        ip = ip.replace(':','-');
-        File assetFile = new File("asset");
-        if(!assetFile.exists()) assetFile.mkdir();
-        File tmpFile = new File("asset/" + ip);
-        if(!tmpFile.exists()) tmpFile.mkdir();
-        String filePath = "asset/" + ip + "/" + "constraints.myccsl";
+        String branch = "test";
+        File repositoryFile = new File(ROOTADDRESS);
+        if(!repositoryFile.exists()){
+            try {
+                Repository repository = GitUtil.createRepository(ROOTADDRESS);
+                GitUtil.RecordUploadProjAt("upload",ROOTADDRESS,ROOTADDRESS);
+            } catch (GitAPIException e) {
+                e.printStackTrace();
+            }
+        }
+        if(!GitUtil.branchNameExist(branch,ROOTADDRESS)){
+            GitUtil.createBranch(branch, ROOTADDRESS);
+        }
+        try {
+            GitUtil.gitCheckout(branch,ROOTADDRESS);
+            GitUtil.currentBranch(ROOTADDRESS);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        String filePath = ROOTADDRESS + "constraints.myccsl";
         File file = new File(filePath);
         if(file.exists()){
             response.setContentType("application/force-download");// 设置强制下载不打开
@@ -110,9 +135,7 @@ public class ClientController extends Cors{
     public void downloadMyCCSL() throws IOException {
         ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
         HttpServletResponse response = servletRequestAttributes.getResponse();
-        File assetFile = new File("asset");
-        if(!assetFile.exists()) assetFile.mkdir();
-        String filePath = "asset/MyCCSL.zip";
+        String filePath = "MyCCSL/MyCCSL.zip";
         File file = new File(filePath);
         if(file.exists()){
             response.setContentType("application/force-download");// 设置强制下载不打开
@@ -153,49 +176,84 @@ public class ClientController extends Cors{
 
     @CrossOrigin
     @GetMapping("/saveConstraintsTxtAndXMLAndMyCCSL")
-    public void saveConstraintsTxtAndXMLAndMyCCSL(String path, String constraints,String addedConstraints) throws DocumentException, IOException {
-//        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-//        HttpServletRequest request = servletRequestAttributes.getRequest();
-//        String ip = IPUtil.getIpAddress(request);
-//        ip = ip.replace(':','-');
-//        File assetFile = new File("asset");
-//        if(!assetFile.exists()) assetFile.mkdir();
-//        File tmpFile = new File("asset/" + ip);
-//        if(!tmpFile.exists()) tmpFile.mkdir();
-//        String filePath = "asset/" + ip + "/" + "constraints.txt";
-        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path + "/constraints.txt"));
-        Document document = DocumentHelper.createDocument();
-        Element root=document.addElement("AddedConstraints");
-        OutputFormat format = OutputFormat.createPrettyPrint();
-        format.setEncoding("utf-8");
-        for(int i = 0;i < constraints.split(",").length;i++){
-            bufferedWriter.write(constraints.split(",")[i]);
-            bufferedWriter.newLine();
-        }
-        for(int i = 0;i < addedConstraints.split(",").length;i++){
-            String addedConstraint = addedConstraints.split(",")[i];
-            if(addedConstraint.contains("TD")){
-                String oldIndex = addedConstraint.substring(2, addedConstraint.indexOf(":"));
-                String newIndex = ((Integer)(Integer.parseInt(addedConstraint.substring(2, addedConstraint.indexOf(":"))) - 1)).toString();
-                addedConstraint = addedConstraint.replaceFirst(oldIndex, newIndex);
+    public void saveConstraintsTxtAndXMLAndMyCCSL(String path, String constraints,String addedConstraints) throws Exception {
+        File file = new File(ROOTADDRESS);
+        if(!file.exists()){
+            try {
+                Repository repository = GitUtil.createRepository(ROOTADDRESS);
+                GitUtil.RecordUploadProjAt("upload",ROOTADDRESS,ROOTADDRESS);
+            } catch (GitAPIException e) {
+                e.printStackTrace();
             }
-            Element node = root.addElement("constraint").addText(addedConstraint);
         }
-        Writer out;
         try {
-            out = new FileWriter(path + "/addedConstraints.xml");
-            XMLWriter writer = new XMLWriter(out, format);
-            writer.write(document);
-            writer.close();
-            System.out.print("生成XML文件成功");
-        } catch (IOException e){
-            System.out.print("生成XML文件失败");
+            GitUtil.currentBranch(ROOTADDRESS);
+            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path + "/constraints.txt"));
+            Document document = DocumentHelper.createDocument();
+            Element root=document.addElement("AddedConstraints");
+            OutputFormat format = OutputFormat.createPrettyPrint();
+            format.setEncoding("utf-8");
+            for(int i = 0;i < constraints.split(",").length;i++){
+                bufferedWriter.write(constraints.split(",")[i]);
+                bufferedWriter.newLine();
+            }
+            for(int i = 0;i < addedConstraints.split(",").length;i++){
+                String addedConstraint = addedConstraints.split(",")[i];
+                if(addedConstraint.contains("TD")){
+                    String oldIndex = addedConstraint.substring(2, addedConstraint.indexOf(":"));
+                    String newIndex = ((Integer)(Integer.parseInt(addedConstraint.substring(2, addedConstraint.indexOf(":"))) - 1)).toString();
+                    addedConstraint = addedConstraint.replaceFirst(oldIndex, newIndex);
+                }
+                Element node = root.addElement("constraint").addText(addedConstraint);
+            }
+            Writer out;
+            try {
+                out = new FileWriter(path + "/addedConstraints.xml");
+                XMLWriter writer = new XMLWriter(out, format);
+                writer.write(document);
+                writer.close();
+                System.out.print("生成XML文件成功");
+            } catch (IOException e){
+                System.out.print("生成XML文件失败");
+                e.printStackTrace();
+            }
+            bufferedWriter.close();
+
+            //修改txt中的addedConstraint
+            String temp = "";
+            File txtFile = new File(ROOTADDRESS + "constraints.txt");
+            FileInputStream fis = new FileInputStream(txtFile);
+            InputStreamReader isr = new InputStreamReader(fis);
+            BufferedReader br = new BufferedReader(isr);
+            StringBuffer buf = new StringBuffer();
+            for (int j = 1; (temp = br.readLine()) != null; j++) {
+                if(!temp.contains(":")){
+                    buf = buf.append(temp);
+                    buf = buf.append(System.getProperty("line.separator"));
+                }
+                else {
+                    String fromNum = temp.substring(3 + temp.indexOf("int"),temp.indexOf("state"));
+                    String toNum = temp.substring(3 + temp.lastIndexOf("int"),temp.lastIndexOf("state"));
+                    String cons = temp.substring(temp.indexOf(" ") + 1, temp.lastIndexOf(" "));
+                    buf = buf.append("int" + fromNum + ' ' + cons + ' ' + "int" + toNum + ';');
+                    buf = buf.append(System.getProperty("line.separator"));
+                }
+            }
+            br.close();
+            FileOutputStream fos = new FileOutputStream(txtFile);
+            PrintWriter pw = new PrintWriter(fos);
+            pw.write(buf.toString().toCharArray());
+            pw.flush();
+            pw.close();
+
+            String txtFileName =  "constraints.txt";
+            String smvFileName = "constraints";
+            clientService.toMyCCSLFormat(txtFileName, smvFileName, path,5);
+            GitUtil.RecordUploadProjAt("upload",ROOTADDRESS, ".");
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        bufferedWriter.close();
-        String txtFileName =  "constraints.txt";
-        String smvFileName = "constraints";
-        clientService.toMyCCSLFormat(txtFileName, smvFileName, path,5);
+
     }
 
     @CrossOrigin
@@ -387,22 +445,25 @@ public class ClientController extends Cors{
     }
 
     @CrossOrigin
-    @GetMapping("/showServerFiles")
-    public Object showServerFiles(String folderPath){
+    @GetMapping("/showBranchList")
+    public Object showBranchList() throws IOException, GitAPIException {
         JSONObject result = new JSONObject();
-        if(folderPath == null || folderPath.trim().equals("")){
-            result.put("filelist","asset");
+        Map map = GitUtil.gitAllBranch(ROOTADDRESS);
+        Iterator it = map.keySet().iterator();
+        while(it.hasNext()){
+            String branch = it.next().toString();
+            branch = branch.substring(branch.lastIndexOf("/") + 1);
+            result.accumulate("branchlist",branch);
         }
-        else{
-            File file = new File(folderPath);
-            if(file.isDirectory()){
-                String[] filelist = file.list();
-                result.put("filelist",filelist);
-            }
-            else{
-                result.put("filelist","noDir");
-            }
-        }
+        return result;
+    }
+
+    @CrossOrigin
+    @GetMapping("/gitChange")
+    public Object gitChange(String branch) throws Exception {
+        JSONObject result = new JSONObject();
+        GitUtil.gitCheckout(branch, ROOTADDRESS);
+        result.put("state","Success");
         return result;
     }
 }
