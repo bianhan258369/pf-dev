@@ -33,7 +33,7 @@ public class ProblemDiagram implements Serializable {
             String path = getFilePath(file.getPath());
             Document project = saxReader.read(file);
             Element rootElement = project.getRootElement();
-            Element filelist = rootElement.elementIterator("filelist").next();
+            Element filelist = rootElement.elementIterator("fileList").next();
             String cdPath = path + filelist.elementIterator("ContextDiagram").next().getText() + ".xml";
             String pdPath = path + filelist.elementIterator("ProblemDiagram").next().getText() + ".xml";
 
@@ -43,12 +43,10 @@ public class ProblemDiagram implements Serializable {
             Document problemDiagram = saxReader.read(pdPath);
 
             rootElement = contextDiagram.getRootElement();
-            it = rootElement.elementIterator("data");
-            Element cdRoot = (Element)it.next();
+            Element cdRoot = rootElement;
 
             rootElement = problemDiagram.getRootElement();
-            it = rootElement.elementIterator("data");
-            Element pdRoot = (Element)it.next();
+            Element pdRoot = rootElement;
 
             Element temp;
             for(Iterator i = cdRoot.elementIterator("Machine");i.hasNext();){
@@ -76,14 +74,15 @@ public class ProblemDiagram implements Serializable {
                 int x2 = Integer.parseInt(locality[2]);
                 int y2 = Integer.parseInt(locality[3]);
                 Oval oval = new Oval(x1 + x2 / 2, y1 + y2 / 2);
-                oval.setText(temp.attributeValue("requirement_text"));
-                oval.setDes(Integer.parseInt(temp.attributeValue("requirement_des")));
-                oval.setBiaohao(Integer.parseInt(temp.attributeValue("requirement_biaohao")));
+                oval.setText(temp.attributeValue("requirement_context"));
+                oval.setDes(1);
+                oval.setBiaohao(Integer.parseInt(temp.attributeValue("requirement_no")));
                 this.components.add(oval);
             }
 
-            Element problemDomain = (Element) cdRoot.elementIterator("Problemdomain").next();
-            for(Iterator i = problemDomain.elementIterator("Element");i.hasNext();){
+            Element problemDomain = (Element) cdRoot.elementIterator("ProblemDomain").next();
+            Element givenDomain = problemDomain.elementIterator("GivenDomain").next();
+            for(Iterator i = givenDomain.elementIterator("Element");i.hasNext();){
                 temp = (Element)i.next();
                 String str = temp.attributeValue("problemdomain_locality");
                 String[] locality = str.split(",");
@@ -95,19 +94,35 @@ public class ProblemDiagram implements Serializable {
                 rect.setText(temp.attributeValue("problemdomain_name"));
                 //System.out.println(rect.getText());
                 rect.setShortName(temp.attributeValue("problemdomain_shortname"));
-                rect.setState(Integer.parseInt(temp.attributeValue("problemdomain_state")));
-                rect.setCxb(temp.attributeValue("problemdomain_cxb").charAt(0));
+                rect.setState(1);
+                rect.setCxb(temp.attributeValue("problemdomain_type").charAt(0));
+                this.components.add(rect);
+            }
+
+            Element designDomain = problemDomain.elementIterator("DesignDomain").next();
+            for(Iterator i = designDomain.elementIterator("Element");i.hasNext();){
+                temp = (Element)i.next();
+                String str = temp.attributeValue("problemdomain_locality");
+                String[] locality = str.split(",");
+                int x1 = Integer.parseInt(locality[0]);
+                int y1 = Integer.parseInt(locality[1]);
+                int x2 = Integer.parseInt(locality[2]);
+                int y2 = Integer.parseInt(locality[3]);
+                Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
+                rect.setText(temp.attributeValue("problemdomain_name"));
+                //System.out.println(rect.getText());
+                rect.setShortName(temp.attributeValue("problemdomain_shortname"));
+                rect.setState(1);
+                rect.setCxb(temp.attributeValue("problemdomain_type").charAt(0));
                 this.components.add(rect);
             }
 
             Element Interface = (Element) cdRoot.elementIterator("Interface").next();
             for(Iterator i = Interface.elementIterator("Element");i.hasNext();){
                 temp = (Element)i.next();
-                String name = temp.attributeValue("line1_name");
-                String str = temp.attributeValue("line1_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
+                String name = temp.attributeValue("interface_no");
+                String to = temp.attributeValue("interface_to");
+                String from = temp.attributeValue("interface_from");
                 Shape toShape = null;
                 Shape fromShape = null;
                 for(int j = 0;j < this.components.size();j++){
@@ -127,24 +142,23 @@ public class ProblemDiagram implements Serializable {
                 Element tempPhenomenon;
                 for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
                     tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
+                    String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                    String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                    String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                    String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
                     Rect phenomenonFromRect = null;
                     Rect phenomenonToRect = null;
                     for(int k = 0;k < this.components.size();k++){
                         Shape tempShape = (Shape)this.components.get(k);
                         if(tempShape instanceof Rect){
                             Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
                         }
                     }
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
+                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
                     Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
-                    phenomenon.setConstraining(phenomenonConstraining);
+                    phenomenon.setConstraining(false);
                     phenomenon.setBiaohao(phenomenonBiaohao);
                     line.getPhenomena().add(phenomenon);
                 }
@@ -154,11 +168,9 @@ public class ProblemDiagram implements Serializable {
             Element reference = pdRoot.elementIterator("Reference").next();
             for(Iterator i = reference.elementIterator("Element");i.hasNext();){
                 temp = (Element)i.next();
-                String name = temp.attributeValue("line2_name");
-                String str = temp.attributeValue("line2_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
+                String name = temp.attributeValue("reference_name");
+                String to = temp.attributeValue("reference_to");
+                String from = temp.attributeValue("reference_from");
                 Shape toShape = null;
                 Shape fromShape = null;
                 for(int j = 0;j < this.components.size();j++){
@@ -181,21 +193,21 @@ public class ProblemDiagram implements Serializable {
                 Element tempPhenomenon;
                 for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
                     tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
-                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("requirement"));
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
+                    String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                    String phenomenonState = tempPhenomenon.attributeValue("phenomentn_type");
+                    String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                    String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
+                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_requirement"));
+                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("phenomenon_constraint")).equals("true") ? true : false;
+                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
                     Rect phenomenonFromRect = null;
                     Rect phenomenonToRect = null;
                     for(int k = 0;k < this.components.size();k++){
                         Shape tempShape = (Shape)this.components.get(k);
                         if(tempShape instanceof Rect){
                             Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
                         }
                     }
                     Oval oval = this.getRequirement(pehnomenonRequirementBiaohao);
@@ -211,11 +223,9 @@ public class ProblemDiagram implements Serializable {
             Element constraint = (Element) pdRoot.elementIterator("Constraint").next();
             for(Iterator i = constraint.elementIterator("Element");i.hasNext();){
                 temp = (Element)i.next();
-                String name = temp.attributeValue("line2_name");
-                String str = temp.attributeValue("line2_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
+                String name = temp.attributeValue("constraint_name");
+                String to = temp.attributeValue("constraint_to");
+                String from = temp.attributeValue("constraint_from");
                 Shape toShape = null;
                 Shape fromShape = null;
                 for(int j = 0;j < this.components.size();j++){
@@ -238,21 +248,21 @@ public class ProblemDiagram implements Serializable {
                 Element tempPhenomenon;
                 for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
                     tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
-                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("requirement"));
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
+                    String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                    String phenomenonState = tempPhenomenon.attributeValue("phenomentn_type");
+                    String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                    String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
+                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_requirement"));
+                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("phenomenon_constraint")).equals("true") ? true : false;
+                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
                     Rect phenomenonFromRect = null;
                     Rect phenomenonToRect = null;
                     for(int k = 0;k < this.components.size();k++){
                         Shape tempShape = (Shape)this.components.get(k);
                         if(tempShape instanceof Rect){
                             Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
                         }
                     }
                     Oval oval = this.getRequirement(pehnomenonRequirementBiaohao);

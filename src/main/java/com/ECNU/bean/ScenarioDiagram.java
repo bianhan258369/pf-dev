@@ -28,41 +28,43 @@ public class ScenarioDiagram {
         try{
             SAXReader saxReader = new SAXReader();
             Document document = saxReader.read(file);
-            Element root = document.getRootElement().elementIterator("data").next();
+            Element root = document.getRootElement();
+            Element nodeRoot = root.elementIterator("NodeList").next();
             Element temp;
 
-            Element intNode = root.elementIterator("IntNode").next();
-            Element lineNode = root.elementIterator("LineNode").next();
+            Element intNode = nodeRoot.elementIterator("IntNode").next();
+            Element controlNode = nodeRoot.elementIterator("ControlNode").next();
+            Element lineNode = root.elementIterator("LineList").next();
 
-            Element actIntNode = intNode.elementIterator("ActIntNode").next();
-            for(Iterator i = actIntNode.elementIterator("Element"); i.hasNext();){
+            Element actIntNode = intNode.elementIterator("BehIntNode").next();
+            for(Iterator i = actIntNode.elementIterator("Element");i.hasNext();){
                 temp = (Element)i.next();
-                String str[] = temp.attributeValue("middleXY").split(",");
+                String str[] = temp.attributeValue("node_locality").split(",");
                 int x = Integer.parseInt(str[0]);
                 int y = Integer.parseInt(str[1]);
-                int number = Integer.parseInt(temp.attributeValue("number"));
-                int state = Integer.parseInt(temp.attributeValue("state"));
-                String name = temp.attributeValue("name");
+                int number = Integer.parseInt(temp.attributeValue("node_no"));
+                int state = 0;
+                String name = "int";
                 Interaction tempJiaohu = new Interaction(x,y,number,state);
                 tempJiaohu.setName(name);
                 interactions.add(tempJiaohu);
             }
 
-            Element expectIntNode = intNode.elementIterator("ExpectIntNode").next();
+            Element expectIntNode = intNode.elementIterator("ExpIntNode").next();
             for(Iterator i = expectIntNode.elementIterator("Element");i.hasNext();){
                 temp = (Element)i.next();
-                String str[] = temp.attributeValue("middleXY").split(",");
+                String str[] = temp.attributeValue("node_locality").split(",");
                 int x = Integer.parseInt(str[0]);
                 int y = Integer.parseInt(str[1]);
-                int number = Integer.parseInt(temp.attributeValue("number"));
-                int state = Integer.parseInt(temp.attributeValue("state"));
-                String name = temp.attributeValue("name");
+                int number = Integer.parseInt(temp.attributeValue("node_no"));
+                int state = 1;
+                String name = "int";
                 Interaction tempJiaohu = new Interaction(x,y,number,state);
                 tempJiaohu.setName(name);
                 interactions.add(tempJiaohu);
             }
 
-            Element actCause = lineNode.elementIterator("ActCause").next();
+            Element actCause = lineNode.elementIterator("BehEnable").next();
             for(Iterator i = actCause.elementIterator("Element");i.hasNext();){
                 temp = (Element)i.next();
                 String str[];
@@ -70,49 +72,79 @@ public class ScenarioDiagram {
                 else str = new String[0];
                 LinkedList list = new LinkedList();
                 for(int j = 0;j < str.length;j++) list.add(str[j]);
-                int fx = Integer.parseInt(temp.attributeValue("fromXY").split(",")[0]);
-                int fy = Integer.parseInt(temp.attributeValue("fromXY").split(",")[1]);
-                int fNumber = Integer.parseInt(temp.attributeValue("fromNum"));
-                int fState = Integer.parseInt(temp.attributeValue("fromState"));
-                String fName = temp.attributeValue("fromName");
+                int fx = Integer.parseInt(temp.attributeValue("from_locality").split(",")[0]);
+                int fy = Integer.parseInt(temp.attributeValue("from_locality").split(",")[1]);
+                int fNumber = Integer.parseInt(temp.attributeValue("from_no"));
+                int fState = -1;
+                if(temp.attributeValue("from_type").equals("Start")) fState = 2;
+                else if(temp.attributeValue("from_type").equals("BehInt")) fState = 0;
+                else if(temp.attributeValue("from_type").equals("ExpInt")) fState = 1;
+                else if(temp.attributeValue("from_type").equals("End")) fState = 3;
+                else if(temp.attributeValue("from_type").equals("Decision")) fState = 4;
+                else if(temp.attributeValue("from_type").equals("Merge")) fState = 5;
+                else if(temp.attributeValue("from_type").equals("Branch")) fState = 6;
+                String fName = "int";
                 Interaction from = new Interaction(fx, fy, fNumber, fState);
                 from.setName(fName);
-                int tx = Integer.parseInt(temp.attributeValue("toXY").split(",")[0]);
-                int ty = Integer.parseInt(temp.attributeValue("toXY").split(",")[1]);
-                int tNumber = Integer.parseInt(temp.attributeValue("toNum"));
-                int tState = Integer.parseInt(temp.attributeValue("toState"));
-                String tName = temp.attributeValue("toName");
+                int tx = Integer.parseInt(temp.attributeValue("to_locality").split(",")[0]);
+                int ty = Integer.parseInt(temp.attributeValue("to_locality").split(",")[1]);
+                int tNumber = Integer.parseInt(temp.attributeValue("to_no"));
+                int tState = -1;
+                if(temp.attributeValue("to_type").equals("Start")) tState = 2;
+                else if(temp.attributeValue("to_type").equals("BehInt")) tState = 0;
+                else if(temp.attributeValue("to_type").equals("ExpInt")) tState = 1;
+                else if(temp.attributeValue("to_type").equals("End")) tState = 3;
+                else if(temp.attributeValue("to_type").equals("Decision")) tState = 4;
+                else if(temp.attributeValue("to_type").equals("Merge")) tState = 5;
+                else if(temp.attributeValue("to_type").equals("Branch")) tState = 6;
+                String tName = "int";
                 Interaction to = new Interaction(tx, ty, tNumber, tState);
                 to.setName(tName);
-                int state = Integer.parseInt(temp.attributeValue("state"));
+                int state = 0;
                 Scenario tempChangjing = new Scenario(list, from, to,state);
                 scenarios.add(tempChangjing);
             }
 
-            Element actOrder = lineNode.elementIterator("ActOrder").next();
+            Element actOrder = lineNode.elementIterator("BehOrder").next();
             for(Iterator i = actOrder.elementIterator("Element");i.hasNext();){
                 temp = (Element)i.next();
+                String fType = temp.attributeValue("from_type");
+                String tType = temp.attributeValue("to_type");
+                if(!fType.equals("BehInt") || !tType.equals("BehInt")) continue;
                 String str[];
                 if(temp.attributeValue("turnings").contains(",")) str = temp.attributeValue("turnings").split(",");
                 else str = new String[0];
                 LinkedList list = new LinkedList();
                 for(int j = 0;j < str.length;j++) list.add(str[j]);
-                int fx = Integer.parseInt(temp.attributeValue("fromXY").split(",")[0]);
-                int fy = Integer.parseInt(temp.attributeValue("fromXY").split(",")[1]);
-                int fNumber = Integer.parseInt(temp.attributeValue("fromNum"));
-                int fState = Integer.parseInt(temp.attributeValue("fromState"));
-                String fName = temp.attributeValue("fromName");
+                int fx = Integer.parseInt(temp.attributeValue("from_locality").split(",")[0]);
+                int fy = Integer.parseInt(temp.attributeValue("from_locality").split(",")[1]);
+                int fNumber = Integer.parseInt(temp.attributeValue("from_no"));
+                int fState = -1;
+                if(temp.attributeValue("from_type").equals("Start")) fState = 2;
+                else if(temp.attributeValue("from_type").equals("BehInt")) fState = 0;
+                else if(temp.attributeValue("from_type").equals("ExpInt")) fState = 1;
+                else if(temp.attributeValue("from_type").equals("End")) fState = 3;
+                else if(temp.attributeValue("from_type").equals("Decision")) fState = 4;
+                else if(temp.attributeValue("from_type").equals("Merge")) fState = 5;
+                else if(temp.attributeValue("from_type").equals("Branch")) fState = 6;
+                String fName = "int";
                 Interaction from = new Interaction(fx, fy, fNumber, fState);
                 from.setName(fName);
-                int tx = Integer.parseInt(temp.attributeValue("toXY").split(",")[0]);
-                int ty = Integer.parseInt(temp.attributeValue("toXY").split(",")[1]);
-                int tNumber = Integer.parseInt(temp.attributeValue("toNum"));
-                int tState = Integer.parseInt(temp.attributeValue("toState"));
-                String tName = temp.attributeValue("toName");
+                int tx = Integer.parseInt(temp.attributeValue("to_locality").split(",")[0]);
+                int ty = Integer.parseInt(temp.attributeValue("to_locality").split(",")[1]);
+                int tNumber = Integer.parseInt(temp.attributeValue("to_no"));
+                int tState = -1;
+                if(temp.attributeValue("to_type").equals("Start")) tState = 2;
+                else if(temp.attributeValue("to_type").equals("BehInt")) tState = 0;
+                else if(temp.attributeValue("to_type").equals("ExpInt")) tState = 1;
+                else if(temp.attributeValue("to_type").equals("End")) tState = 3;
+                else if(temp.attributeValue("to_type").equals("Decision")) tState = 4;
+                else if(temp.attributeValue("to_type").equals("Merge")) tState = 5;
+                else if(temp.attributeValue("to_type").equals("Branch")) tState = 6;
+                String tName = "int";
                 Interaction to = new Interaction(tx, ty, tNumber, tState);
-                if((fState != 0 && fState != 1) || (tState != 0 && tState != 1)) continue;
                 to.setName(tName);
-                int state = Integer.parseInt(temp.attributeValue("state"));
+                int state = 1;
                 Scenario tempChangjing = new Scenario(list, from, to,state);
                 scenarios.add(tempChangjing);
             }
@@ -125,54 +157,84 @@ public class ScenarioDiagram {
                 else str = new String[0];
                 LinkedList list = new LinkedList();
                 for(int j = 0;j < str.length;j++) list.add(str[j]);
-                int fx = Integer.parseInt(temp.attributeValue("fromXY").split(",")[0]);
-                int fy = Integer.parseInt(temp.attributeValue("fromXY").split(",")[1]);
-                int fNumber = Integer.parseInt(temp.attributeValue("fromNum"));
-                int fState = Integer.parseInt(temp.attributeValue("fromState"));
-                String fName = temp.attributeValue("fromName");
+                int fx = Integer.parseInt(temp.attributeValue("from_locality").split(",")[0]);
+                int fy = Integer.parseInt(temp.attributeValue("from_locality").split(",")[1]);
+                int fNumber = Integer.parseInt(temp.attributeValue("from_no"));
+                int fState = -1;
+                if(temp.attributeValue("from_type").equals("Start")) fState = 2;
+                else if(temp.attributeValue("from_type").equals("BehInt")) fState = 0;
+                else if(temp.attributeValue("from_type").equals("ExpInt")) fState = 1;
+                else if(temp.attributeValue("from_type").equals("End")) fState = 3;
+                else if(temp.attributeValue("from_type").equals("Decision")) fState = 4;
+                else if(temp.attributeValue("from_type").equals("Merge")) fState = 5;
+                else if(temp.attributeValue("from_type").equals("Branch")) fState = 6;
+                String fName = "int";
                 Interaction from = new Interaction(fx, fy, fNumber, fState);
                 from.setName(fName);
-                int tx = Integer.parseInt(temp.attributeValue("toXY").split(",")[0]);
-                int ty = Integer.parseInt(temp.attributeValue("toXY").split(",")[1]);
-                int tNumber = Integer.parseInt(temp.attributeValue("toNum"));
-                int tState = Integer.parseInt(temp.attributeValue("toState"));
-                String tName = temp.attributeValue("toName");
+                int tx = Integer.parseInt(temp.attributeValue("to_locality").split(",")[0]);
+                int ty = Integer.parseInt(temp.attributeValue("to_locality").split(",")[1]);
+                int tNumber = Integer.parseInt(temp.attributeValue("to_no"));
+                int tState = -1;
+                if(temp.attributeValue("to_type").equals("Start")) tState = 2;
+                else if(temp.attributeValue("to_type").equals("BehInt")) tState = 0;
+                else if(temp.attributeValue("to_type").equals("ExpInt")) tState = 1;
+                else if(temp.attributeValue("to_type").equals("End")) tState = 3;
+                else if(temp.attributeValue("to_type").equals("Decision")) tState = 4;
+                else if(temp.attributeValue("to_type").equals("Merge")) tState = 5;
+                else if(temp.attributeValue("to_type").equals("Branch")) tState = 6;
+                String tName = "int";
                 Interaction to = new Interaction(tx, ty, tNumber, tState);
                 to.setName(tName);
-                int state = Integer.parseInt(temp.attributeValue("state"));
+                int state = 2;
                 Scenario tempChangjing = new Scenario(list, from, to,state);
                 scenarios.add(tempChangjing);
             }
 
-            Element expectOrder = lineNode.elementIterator("ExpectOrder").next();
+            Element expectOrder = lineNode.elementIterator("ExpOrder").next();
             for(Iterator i = expectOrder.elementIterator("Element");i.hasNext();){
                 temp = (Element)i.next();
+                String fType = temp.attributeValue("from_type");
+                String tType = temp.attributeValue("to_type");
+                if(!fType.equals("ExpInt") || !tType.equals("ExpInt")) continue;
                 String str[];
                 if(temp.attributeValue("turnings").contains(",")) str = temp.attributeValue("turnings").split(",");
                 else str = new String[0];
                 LinkedList list = new LinkedList();
                 for(int j = 0;j < str.length;j++) list.add(str[j]);
-                int fx = Integer.parseInt(temp.attributeValue("fromXY").split(",")[0]);
-                int fy = Integer.parseInt(temp.attributeValue("fromXY").split(",")[1]);
-                int fNumber = Integer.parseInt(temp.attributeValue("fromNum"));
-                int fState = Integer.parseInt(temp.attributeValue("fromState"));
-                String fName = temp.attributeValue("fromName");
+                int fx = Integer.parseInt(temp.attributeValue("from_locality").split(",")[0]);
+                int fy = Integer.parseInt(temp.attributeValue("from_locality").split(",")[1]);
+                int fNumber = Integer.parseInt(temp.attributeValue("from_no"));
+                int fState = -1;
+                if(temp.attributeValue("from_type").equals("Start")) fState = 2;
+                else if(temp.attributeValue("from_type").equals("BehInt")) fState = 0;
+                else if(temp.attributeValue("from_type").equals("ExpInt")) fState = 1;
+                else if(temp.attributeValue("from_type").equals("End")) fState = 3;
+                else if(temp.attributeValue("from_type").equals("Decision")) fState = 4;
+                else if(temp.attributeValue("from_type").equals("Merge")) fState = 5;
+                else if(temp.attributeValue("from_type").equals("Branch")) fState = 6;
+                String fName = "int";
                 Interaction from = new Interaction(fx, fy, fNumber, fState);
                 from.setName(fName);
-                int tx = Integer.parseInt(temp.attributeValue("toXY").split(",")[0]);
-                int ty = Integer.parseInt(temp.attributeValue("toXY").split(",")[1]);
-                int tNumber = Integer.parseInt(temp.attributeValue("toNum"));
-                int tState = Integer.parseInt(temp.attributeValue("toState"));
-                String tName = temp.attributeValue("toName");
+                int tx = Integer.parseInt(temp.attributeValue("to_locality").split(",")[0]);
+                int ty = Integer.parseInt(temp.attributeValue("to_locality").split(",")[1]);
+                int tNumber = Integer.parseInt(temp.attributeValue("to_no"));
+                int tState = -1;
+                if(temp.attributeValue("to_type").equals("Start")) tState = 2;
+                else if(temp.attributeValue("to_type").equals("BehInt")) tState = 0;
+                else if(temp.attributeValue("to_type").equals("ExpInt")) tState = 1;
+                else if(temp.attributeValue("to_type").equals("End")) tState = 3;
+                else if(temp.attributeValue("to_type").equals("Decision")) tState = 4;
+                else if(temp.attributeValue("to_type").equals("Merge")) tState = 5;
+                else if(temp.attributeValue("to_type").equals("Branch")) tState = 6;
+                String tName = "int";
                 Interaction to = new Interaction(tx, ty, tNumber, tState);
                 to.setName(tName);
-                if((fState != 0 && fState != 1) || (tState != 0 && tState != 1)) continue;
-                int state = Integer.parseInt(temp.attributeValue("state"));
+                int state = 3;
                 Scenario tempChangjing = new Scenario(list, from, to,state);
                 scenarios.add(tempChangjing);
             }
 
-            Element expectCause = lineNode.elementIterator("ExpectCause").next();
+            Element expectCause = lineNode.elementIterator("ExpEnable").next();
             for(Iterator i = expectCause.elementIterator("Element");i.hasNext();){
                 temp = (Element)i.next();
                 String str[];
@@ -180,21 +242,35 @@ public class ScenarioDiagram {
                 else str = new String[0];
                 LinkedList list = new LinkedList();
                 for(int j = 0;j < str.length;j++) list.add(str[j]);
-                int fx = Integer.parseInt(temp.attributeValue("fromXY").split(",")[0]);
-                int fy = Integer.parseInt(temp.attributeValue("fromXY").split(",")[1]);
-                int fNumber = Integer.parseInt(temp.attributeValue("fromNum"));
-                int fState = Integer.parseInt(temp.attributeValue("fromState"));
-                String fName = temp.attributeValue("fromName");
+                int fx = Integer.parseInt(temp.attributeValue("from_locality").split(",")[0]);
+                int fy = Integer.parseInt(temp.attributeValue("from_locality").split(",")[1]);
+                int fNumber = Integer.parseInt(temp.attributeValue("from_no"));
+                int fState = -1;
+                if(temp.attributeValue("from_type").equals("Start")) fState = 2;
+                else if(temp.attributeValue("from_type").equals("BehInt")) fState = 0;
+                else if(temp.attributeValue("from_type").equals("ExpInt")) fState = 1;
+                else if(temp.attributeValue("from_type").equals("End")) fState = 3;
+                else if(temp.attributeValue("from_type").equals("Decision")) fState = 4;
+                else if(temp.attributeValue("from_type").equals("Merge")) fState = 5;
+                else if(temp.attributeValue("from_type").equals("Branch")) fState = 6;
+                String fName = "int";
                 Interaction from = new Interaction(fx, fy, fNumber, fState);
                 from.setName(fName);
-                int tx = Integer.parseInt(temp.attributeValue("toXY").split(",")[0]);
-                int ty = Integer.parseInt(temp.attributeValue("toXY").split(",")[1]);
-                int tNumber = Integer.parseInt(temp.attributeValue("toNum"));
-                int tState = Integer.parseInt(temp.attributeValue("toState"));
-                String tName = temp.attributeValue("toName");
+                int tx = Integer.parseInt(temp.attributeValue("to_locality").split(",")[0]);
+                int ty = Integer.parseInt(temp.attributeValue("to_locality").split(",")[1]);
+                int tNumber = Integer.parseInt(temp.attributeValue("to_no"));
+                int tState = -1;
+                if(temp.attributeValue("to_type").equals("Start")) tState = 2;
+                else if(temp.attributeValue("to_type").equals("BehInt")) tState = 0;
+                else if(temp.attributeValue("to_type").equals("ExpInt")) tState = 1;
+                else if(temp.attributeValue("to_type").equals("End")) tState = 3;
+                else if(temp.attributeValue("to_type").equals("Decision")) tState = 4;
+                else if(temp.attributeValue("to_type").equals("Merge")) tState = 5;
+                else if(temp.attributeValue("to_type").equals("Branch")) tState = 6;
+                String tName = "int";
                 Interaction to = new Interaction(tx, ty, tNumber, tState);
                 to.setName(tName);
-                int state = Integer.parseInt(temp.attributeValue("state"));
+                int state = 4;
                 Scenario tempChangjing = new Scenario(list, from, to,state);
                 scenarios.add(tempChangjing);
             }
@@ -206,48 +282,74 @@ public class ScenarioDiagram {
                 else str = new String[0];
                 LinkedList list = new LinkedList();
                 for(int j = 0;j < str.length;j++) list.add(str[j]);
-                int fx = Integer.parseInt(temp.attributeValue("fromXY").split(",")[0]);
-                int fy = Integer.parseInt(temp.attributeValue("fromXY").split(",")[1]);
-                int fNumber = Integer.parseInt(temp.attributeValue("fromNum"));
-                int fState = Integer.parseInt(temp.attributeValue("fromState"));
-                String fName = temp.attributeValue("fromName");
+                int fx = Integer.parseInt(temp.attributeValue("from_locality").split(",")[0]);
+                int fy = Integer.parseInt(temp.attributeValue("from_locality").split(",")[1]);
+                int fNumber = Integer.parseInt(temp.attributeValue("from_no"));
+                int fState = -1;
+                if(temp.attributeValue("from_type").equals("Start")) fState = 2;
+                else if(temp.attributeValue("from_type").equals("BehInt")) fState = 0;
+                else if(temp.attributeValue("from_type").equals("ExpInt")) fState = 1;
+                else if(temp.attributeValue("from_type").equals("End")) fState = 3;
+                else if(temp.attributeValue("from_type").equals("Decision")) fState = 4;
+                else if(temp.attributeValue("from_type").equals("Merge")) fState = 5;
+                else if(temp.attributeValue("from_type").equals("Branch")) fState = 6;
+                String fName = "int";
                 Interaction from = new Interaction(fx, fy, fNumber, fState);
                 from.setName(fName);
-                int tx = Integer.parseInt(temp.attributeValue("toXY").split(",")[0]);
-                int ty = Integer.parseInt(temp.attributeValue("toXY").split(",")[1]);
-                int tNumber = Integer.parseInt(temp.attributeValue("toNum"));
-                int tState = Integer.parseInt(temp.attributeValue("toState"));
-                String tName = temp.attributeValue("toName");
+                int tx = Integer.parseInt(temp.attributeValue("to_locality").split(",")[0]);
+                int ty = Integer.parseInt(temp.attributeValue("to_locality").split(",")[1]);
+                int tNumber = Integer.parseInt(temp.attributeValue("to_no"));
+                int tState = -1;
+                if(temp.attributeValue("to_type").equals("Start")) tState = 2;
+                else if(temp.attributeValue("to_type").equals("BehInt")) tState = 0;
+                else if(temp.attributeValue("to_type").equals("ExpInt")) tState = 1;
+                else if(temp.attributeValue("to_type").equals("End")) tState = 3;
+                else if(temp.attributeValue("to_type").equals("Decision")) tState = 4;
+                else if(temp.attributeValue("to_type").equals("Merge")) tState = 5;
+                else if(temp.attributeValue("to_type").equals("Branch")) tState = 6;
+                String tName = "int";
                 Interaction to = new Interaction(tx, ty, tNumber, tState);
                 to.setName(tName);
                 if(tState == 4){
-                    Element decisionNode = intNode.elementIterator("DecisionNode").next();
+                    Element decisionNode = controlNode.elementIterator("DecisionNode").next();
                     for(Iterator j = decisionNode.elementIterator("Element");j.hasNext();){
                         Element tempDecisionNode = (Element)j.next();
-                        if(Integer.parseInt(tempDecisionNode.attributeValue("number"))==tNumber){
-                            int dx1 = Integer.parseInt(tempDecisionNode.attributeValue("to1XY").split(",")[0]);
-                            int dy1 = Integer.parseInt(tempDecisionNode.attributeValue("to1XY").split(",")[1]);
-                            int dNumber1 = Integer.parseInt(tempDecisionNode.attributeValue("to1Num"));
-                            int dState1 = Integer.parseInt(tempDecisionNode.attributeValue("to1State"));
-                            int dx2 = Integer.parseInt(tempDecisionNode.attributeValue("to2XY").split(",")[0]);
-                            int dy2 = Integer.parseInt(tempDecisionNode.attributeValue("to2XY").split(",")[1]);
-                            int dNumber2 = Integer.parseInt(tempDecisionNode.attributeValue("to2Num"));
-                            int dState2 = Integer.parseInt(tempDecisionNode.attributeValue("to2State"));
-                            Interaction left = new Interaction(dx1, dy1, dNumber1, dState1);
-                            Interaction right = new Interaction(dx2, dy2, dNumber2, dState2);
-                            scenarios.add(new Scenario(new LinkedList(), from, left, 1));
-                            scenarios.add(new Scenario(new LinkedList(), from, right, 1));
+                        if(Integer.parseInt(tempDecisionNode.attributeValue("node_no"))==tNumber){
+                            for(Iterator k = tempDecisionNode.elementIterator("to");k.hasNext();){
+                                Element tempFrom = (Element)k.next();
+                                int dx = Integer.parseInt(tempFrom.attributeValue("node_locality").split(",")[0]);
+                                int dy = Integer.parseInt(tempFrom.attributeValue("node_locality").split(",")[1]);
+                                int dNumber = Integer.parseInt(tempFrom.attributeValue("node_no"));
+                                int dState = -1;
+                                if(tempFrom.attributeValue("node_type").equals("Start")) dState = 2;
+                                else if(tempFrom.attributeValue("node_type").equals("BehInt")) dState = 0;
+                                else if(tempFrom.attributeValue("node_type").equals("ExpInt")) dState = 1;
+                                else if(tempFrom.attributeValue("node_type").equals("End")) dState = 3;
+                                else if(tempFrom.attributeValue("node_type").equals("Decision")) dState = 4;
+                                else if(tempFrom.attributeValue("node_type").equals("Merge")) dState = 5;
+                                else if(tempFrom.attributeValue("node_type").equals("Branch")) dState = 6;
+                                Interaction dJiaohu = new Interaction(dx, dy, dNumber, dState);
+                                scenarios.add(new Scenario(new LinkedList(), from, dJiaohu, 1));
+                            }
                         }
                     }
                 }
                 if(tState == 5){
-                    Element mergeNode = intNode.elementIterator("MergeNode").next();
+                    Element mergeNode = controlNode.elementIterator("MergeNode").next();
                     for(Iterator j = mergeNode.elementIterator("Element");j.hasNext();){
                         Element tempMergeNode = (Element)j.next();
-                        int mx = Integer.parseInt(tempMergeNode.attributeValue("toXY").split(",")[0]);
-                        int my = Integer.parseInt(tempMergeNode.attributeValue("toXY").split(",")[1]);
-                        int mNumber = Integer.parseInt(tempMergeNode.attributeValue("toNum"));
-                        int mState = Integer.parseInt(tempMergeNode.attributeValue("toState"));
+                        Element tempTo = (Element)tempMergeNode.elementIterator("to").next();
+                        int mx = Integer.parseInt(tempTo.attributeValue("node_locality").split(",")[0]);
+                        int my = Integer.parseInt(tempTo.attributeValue("node_locality").split(",")[1]);
+                        int mNumber = Integer.parseInt(tempTo.attributeValue("node_no"));
+                        int mState = -1;
+                        if(tempTo.attributeValue("node_type").equals("Start")) mState = 2;
+                        else if(tempTo.attributeValue("node_type").equals("BehInt")) mState = 0;
+                        else if(tempTo.attributeValue("node_type").equals("ExpInt")) mState = 1;
+                        else if(tempTo.attributeValue("node_type").equals("End")) mState = 3;
+                        else if(tempTo.attributeValue("node_type").equals("Decision")) mState = 4;
+                        else if(tempTo.attributeValue("node_type").equals("Merge")) mState = 5;
+                        else if(tempTo.attributeValue("node_type").equals("Branch")) mState = 6;
                         Interaction merge = new Interaction(mx, my, mNumber, mState);
                         scenarios.add(new Scenario(new LinkedList(), from, merge, 1));
                     }
@@ -261,75 +363,115 @@ public class ScenarioDiagram {
                 else str = new String[0];
                 LinkedList list = new LinkedList();
                 for(int j = 0;j < str.length;j++) list.add(str[j]);
-                int fx = Integer.parseInt(temp.attributeValue("fromXY").split(",")[0]);
-                int fy = Integer.parseInt(temp.attributeValue("fromXY").split(",")[1]);
-                int fNumber = Integer.parseInt(temp.attributeValue("fromNum"));
-                int fState = Integer.parseInt(temp.attributeValue("fromState"));
-                String fName = temp.attributeValue("fromName");
+                int fx = Integer.parseInt(temp.attributeValue("from_locality").split(",")[0]);
+                int fy = Integer.parseInt(temp.attributeValue("from_locality").split(",")[1]);
+                int fNumber = Integer.parseInt(temp.attributeValue("from_no"));
+                int fState = -1;
+                if(temp.attributeValue("from_type").equals("Start")) fState = 2;
+                else if(temp.attributeValue("from_type").equals("BehInt")) fState = 0;
+                else if(temp.attributeValue("from_type").equals("ExpInt")) fState = 1;
+                else if(temp.attributeValue("from_type").equals("End")) fState = 3;
+                else if(temp.attributeValue("from_type").equals("Decision")) fState = 4;
+                else if(temp.attributeValue("from_type").equals("Merge")) fState = 5;
+                else if(temp.attributeValue("from_type").equals("Branch")) fState = 6;
+                String fName = "int";
                 Interaction from = new Interaction(fx, fy, fNumber, fState);
                 from.setName(fName);
-                int tx = Integer.parseInt(temp.attributeValue("toXY").split(",")[0]);
-                int ty = Integer.parseInt(temp.attributeValue("toXY").split(",")[1]);
-                int tNumber = Integer.parseInt(temp.attributeValue("toNum"));
-                int tState = Integer.parseInt(temp.attributeValue("toState"));
-                String tName = temp.attributeValue("toName");
+                int tx = Integer.parseInt(temp.attributeValue("to_locality").split(",")[0]);
+                int ty = Integer.parseInt(temp.attributeValue("to_locality").split(",")[1]);
+                int tNumber = Integer.parseInt(temp.attributeValue("to_no"));
+                int tState = -1;
+                if(temp.attributeValue("to_type").equals("Start")) tState = 2;
+                else if(temp.attributeValue("to_type").equals("BehInt")) tState = 0;
+                else if(temp.attributeValue("to_type").equals("ExpInt")) tState = 1;
+                else if(temp.attributeValue("to_type").equals("End")) tState = 3;
+                else if(temp.attributeValue("to_type").equals("Decision")) tState = 4;
+                else if(temp.attributeValue("to_type").equals("Merge")) tState = 5;
+                else if(temp.attributeValue("to_type").equals("Branch")) tState = 6;
+                String tName = "int";
                 Interaction to = new Interaction(tx, ty, tNumber, tState);
                 to.setName(tName);
                 if(tState == 4){
-                    Element decisionNode = intNode.elementIterator("DecisionNode").next();
+                    Element decisionNode = controlNode.elementIterator("DecisionNode").next();
                     for(Iterator j = decisionNode.elementIterator("Element");j.hasNext();){
                         Element tempDecisionNode = (Element)j.next();
-                        if(Integer.parseInt(tempDecisionNode.attributeValue("number"))==tNumber){
-                            int dx1 = Integer.parseInt(tempDecisionNode.attributeValue("to1XY").split(",")[0]);
-                            int dy1 = Integer.parseInt(tempDecisionNode.attributeValue("to1XY").split(",")[1]);
-                            int dNumber1 = Integer.parseInt(tempDecisionNode.attributeValue("to1Num"));
-                            int dState1 = Integer.parseInt(tempDecisionNode.attributeValue("to1State"));
-                            int dx2 = Integer.parseInt(tempDecisionNode.attributeValue("to2XY").split(",")[0]);
-                            int dy2 = Integer.parseInt(tempDecisionNode.attributeValue("to2XY").split(",")[1]);
-                            int dNumber2 = Integer.parseInt(tempDecisionNode.attributeValue("to2Num"));
-                            int dState2 = Integer.parseInt(tempDecisionNode.attributeValue("to2State"));
-                            Interaction left = new Interaction(dx1, dy1, dNumber1, dState1);
-                            Interaction right = new Interaction(dx2, dy2, dNumber2, dState2);
-                            scenarios.add(new Scenario(new LinkedList(), from, left, 3));
-                            scenarios.add(new Scenario(new LinkedList(), from, right, 3));
+                        if(Integer.parseInt(tempDecisionNode.attributeValue("node_no"))==tNumber){
+                            for(Iterator k = tempDecisionNode.elementIterator("to");k.hasNext();){
+                                Element tempFrom = (Element)k.next();
+                                int dx = Integer.parseInt(tempFrom.attributeValue("node_locality").split(",")[0]);
+                                int dy = Integer.parseInt(tempFrom.attributeValue("node_locality").split(",")[1]);
+                                int dNumber = Integer.parseInt(tempFrom.attributeValue("node_no"));
+                                int dState = -1;
+                                if(tempFrom.attributeValue("node_type").equals("Start")) dState = 2;
+                                else if(tempFrom.attributeValue("node_type").equals("Start")) dState = 0;
+                                else if(tempFrom.attributeValue("node_type").equals("ExpInt")) dState = 1;
+                                else if(tempFrom.attributeValue("node_type").equals("End")) dState = 3;
+                                else if(tempFrom.attributeValue("node_type").equals("Decision")) dState = 4;
+                                else if(tempFrom.attributeValue("node_type").equals("Merge")) dState = 5;
+                                else if(tempFrom.attributeValue("node_type").equals("Branch")) dState = 6;
+                                Interaction dJiaohu = new Interaction(dx, dy, dNumber, dState);
+                                scenarios.add(new Scenario(new LinkedList(), from, dJiaohu, 3));
+                            }
                         }
                     }
                 }
                 if(tState == 5){
-                    Element mergeNode = intNode.elementIterator("MergeNode").next();
+                    Element mergeNode = controlNode.elementIterator("MergeNode").next();
                     for(Iterator j = mergeNode.elementIterator("Element");j.hasNext();){
                         Element tempMergeNode = (Element)j.next();
-                        int mx = Integer.parseInt(tempMergeNode.attributeValue("toXY").split(",")[0]);
-                        int my = Integer.parseInt(tempMergeNode.attributeValue("toXY").split(",")[1]);
-                        int mNumber = Integer.parseInt(tempMergeNode.attributeValue("toNum"));
-                        int mState = Integer.parseInt(tempMergeNode.attributeValue("toState"));
+                        Element tempTo = (Element)tempMergeNode.elementIterator("to").next();
+                        int mx = Integer.parseInt(tempTo.attributeValue("node_locality").split(",")[0]);
+                        int my = Integer.parseInt(tempTo.attributeValue("node_locality").split(",")[1]);
+                        int mNumber = Integer.parseInt(tempTo.attributeValue("node_no"));
+                        int mState = -1;
+                        if(tempTo.attributeValue("node_type").equals("Start")) mState = 2;
+                        else if(tempTo.attributeValue("node_type").equals("Start")) mState = 0;
+                        else if(tempTo.attributeValue("node_type").equals("ExpInt")) mState = 1;
+                        else if(tempTo.attributeValue("node_type").equals("End")) mState = 3;
+                        else if(tempTo.attributeValue("node_type").equals("Decision")) mState = 4;
+                        else if(tempTo.attributeValue("node_type").equals("Merge")) mState = 5;
+                        else if(tempTo.attributeValue("node_type").equals("Branch")) mState = 6;
                         Interaction merge = new Interaction(mx, my, mNumber, mState);
                         scenarios.add(new Scenario(new LinkedList(), from, merge, 3));
                     }
                 }
             }
 
-            Element branchNode = intNode.elementIterator("BranchNode").next();
+            Element branchNode = controlNode.elementIterator("BranchNode").next();
             for(Iterator i = branchNode.elementIterator("Element");i.hasNext();){
                 Element tempBranchNode = (Element)i.next();
                 for(Iterator it = tempBranchNode.elementIterator("from");it.hasNext();){
                     Element tempFrom = (Element)it.next();
-                    int fx = Integer.parseInt(tempFrom.attributeValue("middleXY").split(",")[0]);
-                    int fy = Integer.parseInt(tempFrom.attributeValue("middleXY").split(",")[1]);
-                    int fNumber = Integer.parseInt(tempFrom.attributeValue("number"));
-                    int fState = Integer.parseInt(tempFrom.attributeValue("state"));
+                    int fx = Integer.parseInt(tempFrom.attributeValue("node_locality").split(",")[0]);
+                    int fy = Integer.parseInt(tempFrom.attributeValue("node_locality").split(",")[1]);
+                    int fNumber = Integer.parseInt(tempFrom.attributeValue("node_no"));
+                    int fState = -1;
+                    if(tempFrom.attributeValue("node_type").equals("Start")) fState = 2;
+                    else if(tempFrom.attributeValue("node_type").equals("Start")) fState = 0;
+                    else if(tempFrom.attributeValue("node_type").equals("ExpInt")) fState = 1;
+                    else if(tempFrom.attributeValue("node_type").equals("End")) fState = 3;
+                    else if(tempFrom.attributeValue("node_type").equals("Decision")) fState = 4;
+                    else if(tempFrom.attributeValue("node_type").equals("Merge")) fState = 5;
+                    else if(tempFrom.attributeValue("node_type").equals("Branch")) fState = 6;
                     if(fState != 0 && fState != 1) continue;
-                    String fName = tempFrom.attributeValue("name");
+                    String fName = "int";
                     Interaction from = new Interaction(fx, fy, fNumber, fState);
                     from.setName(fName);
                     for(Iterator j = tempBranchNode.elementIterator("to");j.hasNext();){
                         Element temoTo = (Element)j.next();
-                        int tx = Integer.parseInt(temoTo.attributeValue("middleXY").split(",")[0]);
-                        int ty = Integer.parseInt(temoTo.attributeValue("middleXY").split(",")[1]);
-                        int tNumber = Integer.parseInt(temoTo.attributeValue("number"));
-                        int tState = Integer.parseInt(temoTo.attributeValue("state"));
+                        int tx = Integer.parseInt(temoTo.attributeValue("node_locality").split(",")[0]);
+                        int ty = Integer.parseInt(temoTo.attributeValue("node_locality").split(",")[1]);
+                        int tNumber = Integer.parseInt(temoTo.attributeValue("node_no"));
+                        int tState = -1;
+                        if(temoTo.attributeValue("node_type").equals("Start")) tState = 2;
+                        else if(temoTo.attributeValue("node_type").equals("Start")) tState = 0;
+                        else if(temoTo.attributeValue("node_type").equals("ExpInt")) tState = 1;
+                        else if(temoTo.attributeValue("node_type").equals("End")) tState = 3;
+                        else if(temoTo.attributeValue("node_type").equals("Decision")) tState = 4;
+                        else if(temoTo.attributeValue("node_type").equals("Merge")) tState = 5;
+                        else if(temoTo.attributeValue("node_type").equals("Branch")) tState = 6;
                         if(tState != 0 && tState != 1) continue;
-                        String tName = temoTo.attributeValue("name");
+                        String tName = "int";
                         Interaction to = new Interaction(tx, ty, tNumber, tState);
                         to.setName(tName);
                         if (fState == 0) scenarios.add(new Scenario(new LinkedList(), from, to, 1));

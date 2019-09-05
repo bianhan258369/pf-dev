@@ -36,259 +36,7 @@ import java.util.*;
 public class ClientService implements Serializable{
     private boolean[] visited;
     private String circle;
-/*
-    private void loadProjectXML(String path) throws DocumentException {
-        List<ProblemDiagram> subProblemDiagrams = new LinkedList<>();
-        List<ClockDiagram> clockDiagrams = new LinkedList<>();
-        List<ScenarioDiagram> scenarioDiagrams = new LinkedList<>();
-        ProblemDiagram myProblemDiagram;
-        File file = new File(path);
-        int count = 1;
-        SAXReader saxReader = new SAXReader();
-        Document project = saxReader.read(file);
-        Element rootElement = project.getRootElement();
-        Element filelist = rootElement.elementIterator("filelist").next();
-        Element subList = filelist.elementIterator("SubProblemDiagramList").next();
-        for(Iterator it = subList.elementIterator("SubProblemDiagram"); it.hasNext();){
-            ProblemDiagram diagram = new ProblemDiagram("SubProblemDiagram" + count);
-            diagram.components = new LinkedList();
-            Element spd = (Element) it.next();
-            String spdPath = ProblemDiagram.getFilePath(file.getPath()) + spd.getText()+".xml";
-            Document subProDiagram = saxReader.read(spdPath);
-            Element root = subProDiagram.getRootElement();
-            Element spdRoot = (Element) root.elementIterator("data").next();
-            Element temp;
-            for(Iterator i = spdRoot.elementIterator("Machine");i.hasNext();){
-                temp = (Element)i.next();
-                String str = temp.attributeValue("machine_locality");
-                String[] locality = str.split(",");
-                int x1 = Integer.parseInt(locality[0]);
-                int y1 = Integer.parseInt(locality[1]);
-                int x2 = Integer.parseInt(locality[2]);
-                int y2 = Integer.parseInt(locality[3]);
-                Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
-                rect.setText(temp.attributeValue("machine_name"));
-                rect.setShortName(temp.attributeValue("machine_shortname"));
-                rect.setState(Integer.parseInt(temp.attributeValue("machine_state")));
-                diagram.components.add(rect);
-            }
 
-            Element requirement = (Element) spdRoot.elementIterator("Requirement").next();
-            for(Iterator i = requirement.elementIterator("Element");i.hasNext();){
-                temp = (Element)i.next();
-                String str = temp.attributeValue("requirement_locality");
-                String[] locality = str.split(",");
-                int x1 = Integer.parseInt(locality[0]);
-                int y1 = Integer.parseInt(locality[1]);
-                int x2 = Integer.parseInt(locality[2]);
-                int y2 = Integer.parseInt(locality[3]);
-                Oval oval = new Oval(x1 + x2 / 2, y1 + y2 / 2);
-                oval.setText(temp.attributeValue("requirement_text"));
-                oval.setDes(Integer.parseInt(temp.attributeValue("requirement_des")));
-                oval.setBiaohao(Integer.parseInt(temp.attributeValue("requirement_biaohao")));
-                diagram.components.add(oval);
-            }
-
-            Element problemDomain = (Element) spdRoot.elementIterator("Problemdomain").next();
-            for(Iterator i = problemDomain.elementIterator("Element");i.hasNext();){
-                temp = (Element)i.next();
-                String str = temp.attributeValue("problemdomain_locality");
-                String[] locality = str.split(",");
-                int x1 = Integer.parseInt(locality[0]);
-                int y1 = Integer.parseInt(locality[1]);
-                int x2 = Integer.parseInt(locality[2]);
-                int y2 = Integer.parseInt(locality[3]);
-                Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
-                rect.setText(temp.attributeValue("problemdomain_name"));
-                rect.setShortName(temp.attributeValue("problemdomain_shortname"));
-                rect.setState(Integer.parseInt(temp.attributeValue("problemdomain_state")));
-                rect.setCxb(temp.attributeValue("problemdomain_cxb").charAt(0));
-                diagram.components.add(rect);
-            }
-
-            Element Interface = (Element) spdRoot.elementIterator("Interface").next();
-            for(Iterator i = Interface.elementIterator("Element");i.hasNext();){
-                temp = (Element)i.next();
-                String name = temp.attributeValue("line1_name");
-                String str = temp.attributeValue("line1_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
-                Shape toShape = null;
-                Shape fromShape = null;
-                for(int j = 0;j < diagram.components.size();j++){
-                    Shape tempShape = (Shape)diagram.components.get(j);
-                    if(tempShape instanceof Rect){
-                        Rect tempRect = (Rect)tempShape;
-                        if(tempRect.getState() != 2 && tempRect.getShortName().equals(to)){
-                            toShape = tempRect;
-                        }
-                        if(tempRect.getState() == 2 && tempRect.getShortName().equals(from)){
-                            fromShape = tempRect;
-                        }
-                    }
-                }
-                Line line = new Line(fromShape, toShape, 0);
-                line.setName(name);
-                Element tempPhenomenon;
-                for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
-                    tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
-                    Rect phenomenonFromRect = null;
-                    Rect phenomenonToRect = null;
-                    for(int k = 0;k < diagram.components.size();k++){
-                        Shape tempShape = (Shape)diagram.components.get(k);
-                        if(tempShape instanceof Rect){
-                            Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
-                        }
-                    }
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
-                    Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
-                    phenomenon.setConstraining(phenomenonConstraining);
-                    phenomenon.setBiaohao(phenomenonBiaohao);
-                    line.getPhenomena().add(phenomenon);
-                }
-                diagram.components.add(line);
-            }
-
-            Element reference = spdRoot.elementIterator("Reference").next();
-            for(Iterator i = reference.elementIterator("Element");i.hasNext();){
-                temp = (Element)i.next();
-                String name = temp.attributeValue("line2_name");
-                String str = temp.attributeValue("line2_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
-                Shape toShape = null;
-                Shape fromShape = null;
-                for(int j = 0;j < diagram.components.size();j++){
-                    Shape tempShape = (Shape)diagram.components.get(j);
-                    if(tempShape instanceof Rect){
-                        Rect tempRect = (Rect)tempShape;
-                        if(tempRect.getState() != 2 && tempRect.getShortName().equals(to)){
-                            toShape = tempRect;
-                        }
-                    }
-                    if(tempShape instanceof Oval){
-                        Oval tempOval = (Oval)tempShape;
-                        if(tempOval.getText().equals(from)){
-                            fromShape = tempOval;
-                        }
-                    }
-                }
-                Line line = new Line(fromShape, toShape, 1);
-                line.setName(name);
-                Element tempPhenomenon;
-                for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
-                    tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
-                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("requirement"));
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
-                    Rect phenomenonFromRect = null;
-                    Rect phenomenonToRect = null;
-                    for(int k = 0;k < diagram.components.size();k++){
-                        Shape tempShape = (Shape)diagram.components.get(k);
-                        if(tempShape instanceof Rect){
-                            Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
-                        }
-                    }
-                    Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
-                    Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
-                    phenomenon.setConstraining(phenomenonConstraining);
-                    phenomenon.setBiaohao(phenomenonBiaohao);
-                    phenomenon.setRequirement(oval);
-                    line.getPhenomena().add(phenomenon);
-                }
-                diagram.components.add(line);
-            }
-
-            Element constraint = (Element) spdRoot.elementIterator("Constraint").next();
-            for(Iterator i = constraint.elementIterator("Element");i.hasNext();){
-                temp = (Element)i.next();
-                String name = temp.attributeValue("line2_name");
-                String str = temp.attributeValue("line2_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
-                Shape toShape = null;
-                Shape fromShape = null;
-                for(int j = 0;j < diagram.components.size();j++){
-                    Shape tempShape = (Shape)diagram.components.get(j);
-                    if(tempShape instanceof Rect){
-                        Rect tempRect = (Rect)tempShape;
-                        if(tempRect.getState() != 2 && tempRect.getShortName().equals(to)){
-                            toShape = tempRect;
-                        }
-                    }
-                    if(tempShape instanceof Oval){
-                        Oval tempOval = (Oval)tempShape;
-                        if(tempOval.getText().equals(from)){
-                            fromShape = tempOval;
-                        }
-                    }
-                }
-                Line line = new Line(fromShape, toShape, 2);
-                line.setName(name);
-                Element tempPhenomenon;
-                for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
-                    tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
-                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("requirement"));
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
-                    Rect phenomenonFromRect = null;
-                    Rect phenomenonToRect = null;
-                    for(int k = 0;k < diagram.components.size();k++){
-                        Shape tempShape = (Shape)diagram.components.get(k);
-                        if(tempShape instanceof Rect){
-                            Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
-                        }
-                    }
-                    Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
-                    Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
-                    phenomenon.setConstraining(phenomenonConstraining);
-                    phenomenon.setBiaohao(phenomenonBiaohao);
-                    phenomenon.setRequirement(oval);
-                    line.getPhenomena().add(phenomenon);
-                }
-                diagram.components.add(line);
-            }
-            subProblemDiagrams.add(diagram);
-            ClockDiagram clockDiagram = new ClockDiagram(diagram);
-            clockDiagram.setTitle("ClockDiagram" + count);
-            clockDiagrams.add(clockDiagram);
-            count++;
-        }
-        myProblemDiagram = new ProblemDiagram("ProblemDiagram",file);
-        int senCount = 1;
-        Element senList = filelist.elementIterator("SenarioFilelist").next();
-        for(Iterator it = senList.elementIterator("SenarioDiagram");it.hasNext();){
-            Element sd = (Element) it.next();
-            String sdPath = ProblemDiagram.getFilePath(file.getPath()) + sd.getText()+".xml";
-            File sdFile = new File(sdPath);
-            ScenarioDiagram intDiagram = new ScenarioDiagram("SenarioDiagram" + senCount,senCount,sdFile);
-            scenarioDiagrams.add(intDiagram);
-            senCount++;
-        }
-    }
-*/
     public int getDiagramCount(String path) throws DocumentException {
         {
             List<ProblemDiagram> subProblemDiagrams = new LinkedList<>();
@@ -297,7 +45,7 @@ public class ClientService implements Serializable{
             SAXReader saxReader = new SAXReader();
             Document project = saxReader.read(file);
             Element rootElement = project.getRootElement();
-            Element filelist = rootElement.elementIterator("filelist").next();
+            Element filelist = rootElement.elementIterator("fileList").next();
             Element subList = filelist.elementIterator("SubProblemDiagramList").next();
             for(Iterator it = subList.elementIterator("SubProblemDiagram"); it.hasNext();){
                 ProblemDiagram diagram = new ProblemDiagram("SubProblemDiagram" + count);
@@ -306,7 +54,7 @@ public class ClientService implements Serializable{
                 String spdPath = ProblemDiagram.getFilePath(file.getPath()) + spd.getText()+".xml";
                 Document subProDiagram = saxReader.read(spdPath);
                 Element root = subProDiagram.getRootElement();
-                Element spdRoot = (Element) root.elementIterator("data").next();
+                Element spdRoot = root;
                 Element temp;
                 for(Iterator i = spdRoot.elementIterator("Machine");i.hasNext();){
                     temp = (Element)i.next();
@@ -319,12 +67,11 @@ public class ClientService implements Serializable{
                     Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
                     rect.setText(temp.attributeValue("machine_name"));
                     rect.setShortName(temp.attributeValue("machine_shortname"));
-                    rect.setState(Integer.parseInt(temp.attributeValue("machine_state")));
+                    rect.setState(2);
                     diagram.components.add(rect);
                 }
 
-                Element requirement = (Element) spdRoot.elementIterator("Requirement").next();
-                for(Iterator i = requirement.elementIterator("Element");i.hasNext();){
+                for(Iterator i = spdRoot.elementIterator("Requirement");i.hasNext();){
                     temp = (Element)i.next();
                     String str = temp.attributeValue("requirement_locality");
                     String[] locality = str.split(",");
@@ -333,14 +80,15 @@ public class ClientService implements Serializable{
                     int x2 = Integer.parseInt(locality[2]);
                     int y2 = Integer.parseInt(locality[3]);
                     Oval oval = new Oval(x1 + x2 / 2, y1 + y2 / 2);
-                    oval.setText(temp.attributeValue("requirement_text"));
-                    oval.setDes(Integer.parseInt(temp.attributeValue("requirement_des")));
-                    oval.setBiaohao(Integer.parseInt(temp.attributeValue("requirement_biaohao")));
+                    oval.setText(temp.attributeValue("requirement_context"));
+                    oval.setDes(1);
+                    oval.setBiaohao(Integer.parseInt(temp.attributeValue("requirement_no")));
                     diagram.components.add(oval);
                 }
 
-                Element problemDomain = (Element) spdRoot.elementIterator("Problemdomain").next();
-                for(Iterator i = problemDomain.elementIterator("Element");i.hasNext();){
+                Element problemDomain = (Element) spdRoot.elementIterator("ProblemDomain").next();
+                Element givenDomain = problemDomain.elementIterator("GivenDomain").next();
+                for(Iterator i = givenDomain.elementIterator("Element");i.hasNext();){
                     temp = (Element)i.next();
                     String str = temp.attributeValue("problemdomain_locality");
                     String[] locality = str.split(",");
@@ -351,19 +99,34 @@ public class ClientService implements Serializable{
                     Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
                     rect.setText(temp.attributeValue("problemdomain_name"));
                     rect.setShortName(temp.attributeValue("problemdomain_shortname"));
-                    rect.setState(Integer.parseInt(temp.attributeValue("problemdomain_state")));
-                    rect.setCxb(temp.attributeValue("problemdomain_cxb").charAt(0));
+                    rect.setState(1);
+                    rect.setCxb(temp.attributeValue("problemdomain_type").charAt(0));
+                    diagram.components.add(rect);
+                }
+
+                Element designDomain = problemDomain.elementIterator("DesignDomain").next();
+                for(Iterator i = designDomain.elementIterator("Element");i.hasNext();){
+                    temp = (Element)i.next();
+                    String str = temp.attributeValue("problemdomain_locality");
+                    String[] locality = str.split(",");
+                    int x1 = Integer.parseInt(locality[0]);
+                    int y1 = Integer.parseInt(locality[1]);
+                    int x2 = Integer.parseInt(locality[2]);
+                    int y2 = Integer.parseInt(locality[3]);
+                    Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
+                    rect.setText(temp.attributeValue("problemdomain_name"));
+                    rect.setShortName(temp.attributeValue("problemdomain_shortname"));
+                    rect.setState(1);
+                    rect.setCxb(temp.attributeValue("problemdomain_type").charAt(0));
                     diagram.components.add(rect);
                 }
 
                 Element Interface = (Element) spdRoot.elementIterator("Interface").next();
                 for(Iterator i = Interface.elementIterator("Element");i.hasNext();){
                     temp = (Element)i.next();
-                    String name = temp.attributeValue("line1_name");
-                    String str = temp.attributeValue("line1_tofrom");
-                    String[] locality = str.split(",");
-                    String to = locality[0];
-                    String from = locality[1];
+                    String name = temp.attributeValue("interface_name");
+                    String to = temp.attributeValue("interface_to");
+                    String from = temp.attributeValue("interface_from");
                     Shape toShape = null;
                     Shape fromShape = null;
                     for(int j = 0;j < diagram.components.size();j++){
@@ -383,24 +146,23 @@ public class ClientService implements Serializable{
                     Element tempPhenomenon;
                     for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
                         tempPhenomenon = (Element)j.next();
-                        String phenomenonName = tempPhenomenon.attributeValue("name");
-                        String phenomenonState = tempPhenomenon.attributeValue("state");
-                        String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                        String phenomenonTo = tempPhenomenon.attributeValue("to");
+                        String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                        String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                        String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                        String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
                         Rect phenomenonFromRect = null;
                         Rect phenomenonToRect = null;
                         for(int k = 0;k < diagram.components.size();k++){
                             Shape tempShape = (Shape)diagram.components.get(k);
                             if(tempShape instanceof Rect){
                                 Rect tempRect = (Rect)tempShape;
-                                if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                                if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                                if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                                if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
                             }
                         }
-                        boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                        int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
+                        int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
                         Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
-                        phenomenon.setConstraining(phenomenonConstraining);
+                        phenomenon.setConstraining(false);
                         phenomenon.setBiaohao(phenomenonBiaohao);
                         line.getPhenomena().add(phenomenon);
                     }
@@ -410,11 +172,9 @@ public class ClientService implements Serializable{
                 Element reference = spdRoot.elementIterator("Reference").next();
                 for(Iterator i = reference.elementIterator("Element");i.hasNext();){
                     temp = (Element)i.next();
-                    String name = temp.attributeValue("line2_name");
-                    String str = temp.attributeValue("line2_tofrom");
-                    String[] locality = str.split(",");
-                    String to = locality[0];
-                    String from = locality[1];
+                    String name = temp.attributeValue("reference_name");
+                    String to = temp.attributeValue("reference_to");
+                    String from = temp.attributeValue("reference_from");
                     Shape toShape = null;
                     Shape fromShape = null;
                     for(int j = 0;j < diagram.components.size();j++){
@@ -437,21 +197,21 @@ public class ClientService implements Serializable{
                     Element tempPhenomenon;
                     for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
                         tempPhenomenon = (Element)j.next();
-                        String phenomenonName = tempPhenomenon.attributeValue("name");
-                        String phenomenonState = tempPhenomenon.attributeValue("state");
-                        String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                        String phenomenonTo = tempPhenomenon.attributeValue("to");
-                        int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("requirement"));
-                        boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                        int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
+                        String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                        String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                        String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                        String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
+                        int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_requirement"));
+                        boolean phenomenonConstraining = (tempPhenomenon.attributeValue("phenomenon_constraint")).equals("true") ? true : false;
+                        int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
                         Rect phenomenonFromRect = null;
                         Rect phenomenonToRect = null;
                         for(int k = 0;k < diagram.components.size();k++){
                             Shape tempShape = (Shape)diagram.components.get(k);
                             if(tempShape instanceof Rect){
                                 Rect tempRect = (Rect)tempShape;
-                                if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                                if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                                if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                                if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
                             }
                         }
                         Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
@@ -467,11 +227,9 @@ public class ClientService implements Serializable{
                 Element constraint = (Element) spdRoot.elementIterator("Constraint").next();
                 for(Iterator i = constraint.elementIterator("Element");i.hasNext();){
                     temp = (Element)i.next();
-                    String name = temp.attributeValue("line2_name");
-                    String str = temp.attributeValue("line2_tofrom");
-                    String[] locality = str.split(",");
-                    String to = locality[0];
-                    String from = locality[1];
+                    String name = temp.attributeValue("constraint_name");
+                    String to = temp.attributeValue("constraint_to");
+                    String from = temp.attributeValue("constraint_from");
                     Shape toShape = null;
                     Shape fromShape = null;
                     for(int j = 0;j < diagram.components.size();j++){
@@ -494,21 +252,21 @@ public class ClientService implements Serializable{
                     Element tempPhenomenon;
                     for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
                         tempPhenomenon = (Element)j.next();
-                        String phenomenonName = tempPhenomenon.attributeValue("name");
-                        String phenomenonState = tempPhenomenon.attributeValue("state");
-                        String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                        String phenomenonTo = tempPhenomenon.attributeValue("to");
-                        int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("requirement"));
-                        boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                        int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
+                        String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                        String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                        String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                        String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
+                        int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_requirement"));
+                        boolean phenomenonConstraining = (tempPhenomenon.attributeValue("phenomenon_constraint")).equals("true") ? true : false;
+                        int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
                         Rect phenomenonFromRect = null;
                         Rect phenomenonToRect = null;
                         for(int k = 0;k < diagram.components.size();k++){
                             Shape tempShape = (Shape)diagram.components.get(k);
                             if(tempShape instanceof Rect){
                                 Rect tempRect = (Rect)tempShape;
-                                if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                                if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                                if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                                if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
                             }
                         }
                         Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
@@ -528,954 +286,6 @@ public class ClientService implements Serializable{
     }
 
     public Object getPhenomenonList(String path, int index) throws DocumentException {
-        List<ProblemDiagram> subProblemDiagrams = new LinkedList<>();
-        List<Phenomenon> phenomenonList = new LinkedList<>();
-        File file = new File(path);
-        int count = 1;
-        SAXReader saxReader = new SAXReader();
-        Document project = saxReader.read(file);
-        Element rootElement = project.getRootElement();
-        Element filelist = rootElement.elementIterator("filelist").next();
-        Element subList = filelist.elementIterator("SubProblemDiagramList").next();
-        for(Iterator it = subList.elementIterator("SubProblemDiagram"); it.hasNext();){
-            ProblemDiagram diagram = new ProblemDiagram("SubProblemDiagram" + count);
-            diagram.components = new LinkedList();
-            Element spd = (Element) it.next();
-            String spdPath = ProblemDiagram.getFilePath(file.getPath()) + spd.getText()+".xml";
-            Document subProDiagram = saxReader.read(spdPath);
-            Element root = subProDiagram.getRootElement();
-            Element spdRoot = (Element) root.elementIterator("data").next();
-            Element temp;
-            for(Iterator i = spdRoot.elementIterator("Machine");i.hasNext();){
-                temp = (Element)i.next();
-                String str = temp.attributeValue("machine_locality");
-                String[] locality = str.split(",");
-                int x1 = Integer.parseInt(locality[0]);
-                int y1 = Integer.parseInt(locality[1]);
-                int x2 = Integer.parseInt(locality[2]);
-                int y2 = Integer.parseInt(locality[3]);
-                Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
-                rect.setText(temp.attributeValue("machine_name"));
-                rect.setShortName(temp.attributeValue("machine_shortname"));
-                rect.setState(Integer.parseInt(temp.attributeValue("machine_state")));
-                diagram.components.add(rect);
-            }
-
-            Element requirement = (Element) spdRoot.elementIterator("Requirement").next();
-            for(Iterator i = requirement.elementIterator("Element");i.hasNext();){
-                temp = (Element)i.next();
-                String str = temp.attributeValue("requirement_locality");
-                String[] locality = str.split(",");
-                int x1 = Integer.parseInt(locality[0]);
-                int y1 = Integer.parseInt(locality[1]);
-                int x2 = Integer.parseInt(locality[2]);
-                int y2 = Integer.parseInt(locality[3]);
-                Oval oval = new Oval(x1 + x2 / 2, y1 + y2 / 2);
-                oval.setText(temp.attributeValue("requirement_text"));
-                oval.setDes(Integer.parseInt(temp.attributeValue("requirement_des")));
-                oval.setBiaohao(Integer.parseInt(temp.attributeValue("requirement_biaohao")));
-                diagram.components.add(oval);
-            }
-
-            Element problemDomain = (Element) spdRoot.elementIterator("Problemdomain").next();
-            for(Iterator i = problemDomain.elementIterator("Element");i.hasNext();){
-                temp = (Element)i.next();
-                String str = temp.attributeValue("problemdomain_locality");
-                String[] locality = str.split(",");
-                int x1 = Integer.parseInt(locality[0]);
-                int y1 = Integer.parseInt(locality[1]);
-                int x2 = Integer.parseInt(locality[2]);
-                int y2 = Integer.parseInt(locality[3]);
-                Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
-                rect.setText(temp.attributeValue("problemdomain_name"));
-                rect.setShortName(temp.attributeValue("problemdomain_shortname"));
-                rect.setState(Integer.parseInt(temp.attributeValue("problemdomain_state")));
-                rect.setCxb(temp.attributeValue("problemdomain_cxb").charAt(0));
-                diagram.components.add(rect);
-            }
-
-            Element Interface = (Element) spdRoot.elementIterator("Interface").next();
-            for(Iterator i = Interface.elementIterator("Element");i.hasNext();){
-                temp = (Element)i.next();
-                String name = temp.attributeValue("line1_name");
-                String str = temp.attributeValue("line1_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
-                Shape toShape = null;
-                Shape fromShape = null;
-                for(int j = 0;j < diagram.components.size();j++){
-                    Shape tempShape = (Shape)diagram.components.get(j);
-                    if(tempShape instanceof Rect){
-                        Rect tempRect = (Rect)tempShape;
-                        if(tempRect.getState() != 2 && tempRect.getShortName().equals(to)){
-                            toShape = tempRect;
-                        }
-                        if(tempRect.getState() == 2 && tempRect.getShortName().equals(from)){
-                            fromShape = tempRect;
-                        }
-                    }
-                }
-                Line line = new Line(fromShape, toShape, 0);
-                line.setName(name);
-                Element tempPhenomenon;
-                for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
-                    tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
-                    Rect phenomenonFromRect = null;
-                    Rect phenomenonToRect = null;
-                    for(int k = 0;k < diagram.components.size();k++){
-                        Shape tempShape = (Shape)diagram.components.get(k);
-                        if(tempShape instanceof Rect){
-                            Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
-                        }
-                    }
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
-                    Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
-                    phenomenon.setConstraining(phenomenonConstraining);
-                    phenomenon.setBiaohao(phenomenonBiaohao);
-                    line.getPhenomena().add(phenomenon);
-                }
-                diagram.components.add(line);
-            }
-
-            Element reference = spdRoot.elementIterator("Reference").next();
-            for(Iterator i = reference.elementIterator("Element");i.hasNext();){
-                temp = (Element)i.next();
-                String name = temp.attributeValue("line2_name");
-                String str = temp.attributeValue("line2_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
-                Shape toShape = null;
-                Shape fromShape = null;
-                for(int j = 0;j < diagram.components.size();j++){
-                    Shape tempShape = (Shape)diagram.components.get(j);
-                    if(tempShape instanceof Rect){
-                        Rect tempRect = (Rect)tempShape;
-                        if(tempRect.getState() != 2 && tempRect.getShortName().equals(to)){
-                            toShape = tempRect;
-                        }
-                    }
-                    if(tempShape instanceof Oval){
-                        Oval tempOval = (Oval)tempShape;
-                        if(tempOval.getText().equals(from)){
-                            fromShape = tempOval;
-                        }
-                    }
-                }
-                Line line = new Line(fromShape, toShape, 1);
-                line.setName(name);
-                Element tempPhenomenon;
-                for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
-                    tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
-                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("requirement"));
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
-                    Rect phenomenonFromRect = null;
-                    Rect phenomenonToRect = null;
-                    for(int k = 0;k < diagram.components.size();k++){
-                        Shape tempShape = (Shape)diagram.components.get(k);
-                        if(tempShape instanceof Rect){
-                            Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
-                        }
-                    }
-                    Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
-                    Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
-                    phenomenon.setConstraining(phenomenonConstraining);
-                    phenomenon.setBiaohao(phenomenonBiaohao);
-                    phenomenon.setRequirement(oval);
-                    line.getPhenomena().add(phenomenon);
-                }
-                diagram.components.add(line);
-            }
-
-            Element constraint = (Element) spdRoot.elementIterator("Constraint").next();
-            for(Iterator i = constraint.elementIterator("Element");i.hasNext();){
-                temp = (Element)i.next();
-                String name = temp.attributeValue("line2_name");
-                String str = temp.attributeValue("line2_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
-                Shape toShape = null;
-                Shape fromShape = null;
-                for(int j = 0;j < diagram.components.size();j++){
-                    Shape tempShape = (Shape)diagram.components.get(j);
-                    if(tempShape instanceof Rect){
-                        Rect tempRect = (Rect)tempShape;
-                        if(tempRect.getState() != 2 && tempRect.getShortName().equals(to)){
-                            toShape = tempRect;
-                        }
-                    }
-                    if(tempShape instanceof Oval){
-                        Oval tempOval = (Oval)tempShape;
-                        if(tempOval.getText().equals(from)){
-                            fromShape = tempOval;
-                        }
-                    }
-                }
-                Line line = new Line(fromShape, toShape, 2);
-                line.setName(name);
-                Element tempPhenomenon;
-                for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
-                    tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
-                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("requirement"));
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
-                    Rect phenomenonFromRect = null;
-                    Rect phenomenonToRect = null;
-                    for(int k = 0;k < diagram.components.size();k++){
-                        Shape tempShape = (Shape)diagram.components.get(k);
-                        if(tempShape instanceof Rect){
-                            Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
-                        }
-                    }
-                    Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
-                    Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
-                    phenomenon.setConstraining(phenomenonConstraining);
-                    phenomenon.setBiaohao(phenomenonBiaohao);
-                    phenomenon.setRequirement(oval);
-                    line.getPhenomena().add(phenomenon);
-                }
-                diagram.components.add(line);
-            }
-            subProblemDiagrams.add(diagram);
-            count++;
-        }
-        return subProblemDiagrams.get(index).getPhenomenon();
-    }
-
-    public Object getRectList(String path, int index) throws DocumentException {
-        List<ProblemDiagram> subProblemDiagrams = new LinkedList<>();
-        File file = new File(path);
-        int count = 1;
-        SAXReader saxReader = new SAXReader();
-        Document project = saxReader.read(file);
-        Element rootElement = project.getRootElement();
-        Element filelist = rootElement.elementIterator("filelist").next();
-        Element subList = filelist.elementIterator("SubProblemDiagramList").next();
-        for(Iterator it = subList.elementIterator("SubProblemDiagram"); it.hasNext();){
-            ProblemDiagram diagram = new ProblemDiagram("SubProblemDiagram" + count);
-            diagram.components = new LinkedList();
-            Element spd = (Element) it.next();
-            String spdPath = ProblemDiagram.getFilePath(file.getPath()) + spd.getText()+".xml";
-            Document subProDiagram = saxReader.read(spdPath);
-            Element root = subProDiagram.getRootElement();
-            Element spdRoot = (Element) root.elementIterator("data").next();
-            Element temp;
-            for(Iterator i = spdRoot.elementIterator("Machine");i.hasNext();){
-                temp = (Element)i.next();
-                String str = temp.attributeValue("machine_locality");
-                String[] locality = str.split(",");
-                int x1 = Integer.parseInt(locality[0]);
-                int y1 = Integer.parseInt(locality[1]);
-                int x2 = Integer.parseInt(locality[2]);
-                int y2 = Integer.parseInt(locality[3]);
-                Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
-                rect.setText(temp.attributeValue("machine_name"));
-                rect.setShortName(temp.attributeValue("machine_shortname"));
-                rect.setState(Integer.parseInt(temp.attributeValue("machine_state")));
-                diagram.components.add(rect);
-            }
-
-            Element requirement = (Element) spdRoot.elementIterator("Requirement").next();
-            for(Iterator i = requirement.elementIterator("Element");i.hasNext();){
-                temp = (Element)i.next();
-                String str = temp.attributeValue("requirement_locality");
-                String[] locality = str.split(",");
-                int x1 = Integer.parseInt(locality[0]);
-                int y1 = Integer.parseInt(locality[1]);
-                int x2 = Integer.parseInt(locality[2]);
-                int y2 = Integer.parseInt(locality[3]);
-                Oval oval = new Oval(x1 + x2 / 2, y1 + y2 / 2);
-                oval.setText(temp.attributeValue("requirement_text"));
-                oval.setDes(Integer.parseInt(temp.attributeValue("requirement_des")));
-                oval.setBiaohao(Integer.parseInt(temp.attributeValue("requirement_biaohao")));
-                diagram.components.add(oval);
-            }
-
-            Element problemDomain = (Element) spdRoot.elementIterator("Problemdomain").next();
-            for(Iterator i = problemDomain.elementIterator("Element");i.hasNext();){
-                temp = (Element)i.next();
-                String str = temp.attributeValue("problemdomain_locality");
-                String[] locality = str.split(",");
-                int x1 = Integer.parseInt(locality[0]);
-                int y1 = Integer.parseInt(locality[1]);
-                int x2 = Integer.parseInt(locality[2]);
-                int y2 = Integer.parseInt(locality[3]);
-                Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
-                rect.setText(temp.attributeValue("problemdomain_name"));
-                rect.setShortName(temp.attributeValue("problemdomain_shortname"));
-                rect.setState(Integer.parseInt(temp.attributeValue("problemdomain_state")));
-                rect.setCxb(temp.attributeValue("problemdomain_cxb").charAt(0));
-                diagram.components.add(rect);
-            }
-
-            Element Interface = (Element) spdRoot.elementIterator("Interface").next();
-            for(Iterator i = Interface.elementIterator("Element");i.hasNext();){
-                temp = (Element)i.next();
-                String name = temp.attributeValue("line1_name");
-                String str = temp.attributeValue("line1_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
-                Shape toShape = null;
-                Shape fromShape = null;
-                for(int j = 0;j < diagram.components.size();j++){
-                    Shape tempShape = (Shape)diagram.components.get(j);
-                    if(tempShape instanceof Rect){
-                        Rect tempRect = (Rect)tempShape;
-                        if(tempRect.getState() != 2 && tempRect.getShortName().equals(to)){
-                            toShape = tempRect;
-                        }
-                        if(tempRect.getState() == 2 && tempRect.getShortName().equals(from)){
-                            fromShape = tempRect;
-                        }
-                    }
-                }
-                Line line = new Line(fromShape, toShape, 0);
-                line.setName(name);
-                Element tempPhenomenon;
-                for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
-                    tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
-                    Rect phenomenonFromRect = null;
-                    Rect phenomenonToRect = null;
-                    for(int k = 0;k < diagram.components.size();k++){
-                        Shape tempShape = (Shape)diagram.components.get(k);
-                        if(tempShape instanceof Rect){
-                            Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
-                        }
-                    }
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
-                    Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
-                    phenomenon.setConstraining(phenomenonConstraining);
-                    phenomenon.setBiaohao(phenomenonBiaohao);
-                    line.getPhenomena().add(phenomenon);
-                }
-                diagram.components.add(line);
-            }
-
-            Element reference = spdRoot.elementIterator("Reference").next();
-            for(Iterator i = reference.elementIterator("Element");i.hasNext();){
-                temp = (Element)i.next();
-                String name = temp.attributeValue("line2_name");
-                String str = temp.attributeValue("line2_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
-                Shape toShape = null;
-                Shape fromShape = null;
-                for(int j = 0;j < diagram.components.size();j++){
-                    Shape tempShape = (Shape)diagram.components.get(j);
-                    if(tempShape instanceof Rect){
-                        Rect tempRect = (Rect)tempShape;
-                        if(tempRect.getState() != 2 && tempRect.getShortName().equals(to)){
-                            toShape = tempRect;
-                        }
-                    }
-                    if(tempShape instanceof Oval){
-                        Oval tempOval = (Oval)tempShape;
-                        if(tempOval.getText().equals(from)){
-                            fromShape = tempOval;
-                        }
-                    }
-                }
-                Line line = new Line(fromShape, toShape, 1);
-                line.setName(name);
-                Element tempPhenomenon;
-                for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
-                    tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
-                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("requirement"));
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
-                    Rect phenomenonFromRect = null;
-                    Rect phenomenonToRect = null;
-                    for(int k = 0;k < diagram.components.size();k++){
-                        Shape tempShape = (Shape)diagram.components.get(k);
-                        if(tempShape instanceof Rect){
-                            Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
-                        }
-                    }
-                    Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
-                    Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
-                    phenomenon.setConstraining(phenomenonConstraining);
-                    phenomenon.setBiaohao(phenomenonBiaohao);
-                    phenomenon.setRequirement(oval);
-                    line.getPhenomena().add(phenomenon);
-                }
-                diagram.components.add(line);
-            }
-
-            Element constraint = (Element) spdRoot.elementIterator("Constraint").next();
-            for(Iterator i = constraint.elementIterator("Element");i.hasNext();){
-                temp = (Element)i.next();
-                String name = temp.attributeValue("line2_name");
-                String str = temp.attributeValue("line2_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
-                Shape toShape = null;
-                Shape fromShape = null;
-                for(int j = 0;j < diagram.components.size();j++){
-                    Shape tempShape = (Shape)diagram.components.get(j);
-                    if(tempShape instanceof Rect){
-                        Rect tempRect = (Rect)tempShape;
-                        if(tempRect.getState() != 2 && tempRect.getShortName().equals(to)){
-                            toShape = tempRect;
-                        }
-                    }
-                    if(tempShape instanceof Oval){
-                        Oval tempOval = (Oval)tempShape;
-                        if(tempOval.getText().equals(from)){
-                            fromShape = tempOval;
-                        }
-                    }
-                }
-                Line line = new Line(fromShape, toShape, 2);
-                line.setName(name);
-                Element tempPhenomenon;
-                for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
-                    tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
-                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("requirement"));
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
-                    Rect phenomenonFromRect = null;
-                    Rect phenomenonToRect = null;
-                    for(int k = 0;k < diagram.components.size();k++){
-                        Shape tempShape = (Shape)diagram.components.get(k);
-                        if(tempShape instanceof Rect){
-                            Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
-                        }
-                    }
-                    Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
-                    Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
-                    phenomenon.setConstraining(phenomenonConstraining);
-                    phenomenon.setBiaohao(phenomenonBiaohao);
-                    phenomenon.setRequirement(oval);
-                    line.getPhenomena().add(phenomenon);
-                }
-                diagram.components.add(line);
-            }
-            subProblemDiagrams.add(diagram);
-            count++;
-        }
-        ProblemDiagram problemDiagram = subProblemDiagrams.get(index);
-        return problemDiagram.getRect();
-    }
-
-    public Object getLineList(String path, int index) throws DocumentException {
-        List<ProblemDiagram> subProblemDiagrams = new LinkedList<>();
-        File file = new File(path);
-        int count = 1;
-        SAXReader saxReader = new SAXReader();
-        Document project = saxReader.read(file);
-        Element rootElement = project.getRootElement();
-        Element filelist = rootElement.elementIterator("filelist").next();
-        Element subList = filelist.elementIterator("SubProblemDiagramList").next();
-        for(Iterator it = subList.elementIterator("SubProblemDiagram"); it.hasNext();){
-            ProblemDiagram diagram = new ProblemDiagram("SubProblemDiagram" + count);
-            diagram.components = new LinkedList();
-            Element spd = (Element) it.next();
-            String spdPath = ProblemDiagram.getFilePath(file.getPath()) + spd.getText()+".xml";
-            Document subProDiagram = saxReader.read(spdPath);
-            Element root = subProDiagram.getRootElement();
-            Element spdRoot = (Element) root.elementIterator("data").next();
-            Element temp;
-            for(Iterator i = spdRoot.elementIterator("Machine");i.hasNext();){
-                temp = (Element)i.next();
-                String str = temp.attributeValue("machine_locality");
-                String[] locality = str.split(",");
-                int x1 = Integer.parseInt(locality[0]);
-                int y1 = Integer.parseInt(locality[1]);
-                int x2 = Integer.parseInt(locality[2]);
-                int y2 = Integer.parseInt(locality[3]);
-                Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
-                rect.setText(temp.attributeValue("machine_name"));
-                rect.setShortName(temp.attributeValue("machine_shortname"));
-                rect.setState(Integer.parseInt(temp.attributeValue("machine_state")));
-                diagram.components.add(rect);
-            }
-
-            Element requirement = (Element) spdRoot.elementIterator("Requirement").next();
-            for(Iterator i = requirement.elementIterator("Element");i.hasNext();){
-                temp = (Element)i.next();
-                String str = temp.attributeValue("requirement_locality");
-                String[] locality = str.split(",");
-                int x1 = Integer.parseInt(locality[0]);
-                int y1 = Integer.parseInt(locality[1]);
-                int x2 = Integer.parseInt(locality[2]);
-                int y2 = Integer.parseInt(locality[3]);
-                Oval oval = new Oval(x1 + x2 / 2, y1 + y2 / 2);
-                oval.setText(temp.attributeValue("requirement_text"));
-                oval.setDes(Integer.parseInt(temp.attributeValue("requirement_des")));
-                oval.setBiaohao(Integer.parseInt(temp.attributeValue("requirement_biaohao")));
-                diagram.components.add(oval);
-            }
-
-            Element problemDomain = (Element) spdRoot.elementIterator("Problemdomain").next();
-            for(Iterator i = problemDomain.elementIterator("Element");i.hasNext();){
-                temp = (Element)i.next();
-                String str = temp.attributeValue("problemdomain_locality");
-                String[] locality = str.split(",");
-                int x1 = Integer.parseInt(locality[0]);
-                int y1 = Integer.parseInt(locality[1]);
-                int x2 = Integer.parseInt(locality[2]);
-                int y2 = Integer.parseInt(locality[3]);
-                Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
-                rect.setText(temp.attributeValue("problemdomain_name"));
-                rect.setShortName(temp.attributeValue("problemdomain_shortname"));
-                rect.setState(Integer.parseInt(temp.attributeValue("problemdomain_state")));
-                rect.setCxb(temp.attributeValue("problemdomain_cxb").charAt(0));
-                diagram.components.add(rect);
-            }
-
-            Element Interface = (Element) spdRoot.elementIterator("Interface").next();
-            for(Iterator i = Interface.elementIterator("Element");i.hasNext();){
-                temp = (Element)i.next();
-                String name = temp.attributeValue("line1_name");
-                String str = temp.attributeValue("line1_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
-                Shape toShape = null;
-                Shape fromShape = null;
-                for(int j = 0;j < diagram.components.size();j++){
-                    Shape tempShape = (Shape)diagram.components.get(j);
-                    if(tempShape instanceof Rect){
-                        Rect tempRect = (Rect)tempShape;
-                        if(tempRect.getState() != 2 && tempRect.getShortName().equals(to)){
-                            toShape = tempRect;
-                        }
-                        if(tempRect.getState() == 2 && tempRect.getShortName().equals(from)){
-                            fromShape = tempRect;
-                        }
-                    }
-                }
-                Line line = new Line(fromShape, toShape, 0);
-                line.setName(name);
-                Element tempPhenomenon;
-                for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
-                    tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
-                    Rect phenomenonFromRect = null;
-                    Rect phenomenonToRect = null;
-                    for(int k = 0;k < diagram.components.size();k++){
-                        Shape tempShape = (Shape)diagram.components.get(k);
-                        if(tempShape instanceof Rect){
-                            Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
-                        }
-                    }
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
-                    Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
-                    phenomenon.setConstraining(phenomenonConstraining);
-                    phenomenon.setBiaohao(phenomenonBiaohao);
-                    line.getPhenomena().add(phenomenon);
-                }
-                diagram.components.add(line);
-            }
-
-            Element reference = spdRoot.elementIterator("Reference").next();
-            for(Iterator i = reference.elementIterator("Element");i.hasNext();){
-                temp = (Element)i.next();
-                String name = temp.attributeValue("line2_name");
-                String str = temp.attributeValue("line2_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
-                Shape toShape = null;
-                Shape fromShape = null;
-                for(int j = 0;j < diagram.components.size();j++){
-                    Shape tempShape = (Shape)diagram.components.get(j);
-                    if(tempShape instanceof Rect){
-                        Rect tempRect = (Rect)tempShape;
-                        if(tempRect.getState() != 2 && tempRect.getShortName().equals(to)){
-                            toShape = tempRect;
-                        }
-                    }
-                    if(tempShape instanceof Oval){
-                        Oval tempOval = (Oval)tempShape;
-                        if(tempOval.getText().equals(from)){
-                            fromShape = tempOval;
-                        }
-                    }
-                }
-                Line line = new Line(fromShape, toShape, 1);
-                line.setName(name);
-                Element tempPhenomenon;
-                for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
-                    tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
-                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("requirement"));
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
-                    Rect phenomenonFromRect = null;
-                    Rect phenomenonToRect = null;
-                    for(int k = 0;k < diagram.components.size();k++){
-                        Shape tempShape = (Shape)diagram.components.get(k);
-                        if(tempShape instanceof Rect){
-                            Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
-                        }
-                    }
-                    Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
-                    Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
-                    phenomenon.setConstraining(phenomenonConstraining);
-                    phenomenon.setBiaohao(phenomenonBiaohao);
-                    phenomenon.setRequirement(oval);
-                    line.getPhenomena().add(phenomenon);
-                }
-                diagram.components.add(line);
-            }
-
-            Element constraint = (Element) spdRoot.elementIterator("Constraint").next();
-            for(Iterator i = constraint.elementIterator("Element");i.hasNext();){
-                temp = (Element)i.next();
-                String name = temp.attributeValue("line2_name");
-                String str = temp.attributeValue("line2_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
-                Shape toShape = null;
-                Shape fromShape = null;
-                for(int j = 0;j < diagram.components.size();j++){
-                    Shape tempShape = (Shape)diagram.components.get(j);
-                    if(tempShape instanceof Rect){
-                        Rect tempRect = (Rect)tempShape;
-                        if(tempRect.getState() != 2 && tempRect.getShortName().equals(to)){
-                            toShape = tempRect;
-                        }
-                    }
-                    if(tempShape instanceof Oval){
-                        Oval tempOval = (Oval)tempShape;
-                        if(tempOval.getText().equals(from)){
-                            fromShape = tempOval;
-                        }
-                    }
-                }
-                Line line = new Line(fromShape, toShape, 2);
-                line.setName(name);
-                Element tempPhenomenon;
-                for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
-                    tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
-                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("requirement"));
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
-                    Rect phenomenonFromRect = null;
-                    Rect phenomenonToRect = null;
-                    for(int k = 0;k < diagram.components.size();k++){
-                        Shape tempShape = (Shape)diagram.components.get(k);
-                        if(tempShape instanceof Rect){
-                            Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
-                        }
-                    }
-                    Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
-                    Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
-                    phenomenon.setConstraining(phenomenonConstraining);
-                    phenomenon.setBiaohao(phenomenonBiaohao);
-                    phenomenon.setRequirement(oval);
-                    line.getPhenomena().add(phenomenon);
-                }
-                diagram.components.add(line);
-            }
-            subProblemDiagrams.add(diagram);
-            count++;
-        }
-        ProblemDiagram problemDiagram = subProblemDiagrams.get(index);
-        return problemDiagram.getLines();
-    }
-
-    public Object getOvalList(String path, int index) throws DocumentException {
-        List<ProblemDiagram> subProblemDiagrams = new LinkedList<>();
-        File file = new File(path);
-        int count = 1;
-        SAXReader saxReader = new SAXReader();
-        Document project = saxReader.read(file);
-        Element rootElement = project.getRootElement();
-        Element filelist = rootElement.elementIterator("filelist").next();
-        Element subList = filelist.elementIterator("SubProblemDiagramList").next();
-        for(Iterator it = subList.elementIterator("SubProblemDiagram"); it.hasNext();){
-            ProblemDiagram diagram = new ProblemDiagram("SubProblemDiagram" + count);
-            diagram.components = new LinkedList();
-            Element spd = (Element) it.next();
-            String spdPath = ProblemDiagram.getFilePath(file.getPath()) + spd.getText()+".xml";
-            Document subProDiagram = saxReader.read(spdPath);
-            Element root = subProDiagram.getRootElement();
-            Element spdRoot = (Element) root.elementIterator("data").next();
-            Element temp;
-            for(Iterator i = spdRoot.elementIterator("Machine");i.hasNext();){
-                temp = (Element)i.next();
-                String str = temp.attributeValue("machine_locality");
-                String[] locality = str.split(",");
-                int x1 = Integer.parseInt(locality[0]);
-                int y1 = Integer.parseInt(locality[1]);
-                int x2 = Integer.parseInt(locality[2]);
-                int y2 = Integer.parseInt(locality[3]);
-                Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
-                rect.setText(temp.attributeValue("machine_name"));
-                rect.setShortName(temp.attributeValue("machine_shortname"));
-                rect.setState(Integer.parseInt(temp.attributeValue("machine_state")));
-                diagram.components.add(rect);
-            }
-
-            Element requirement = (Element) spdRoot.elementIterator("Requirement").next();
-            for(Iterator i = requirement.elementIterator("Element");i.hasNext();){
-                temp = (Element)i.next();
-                String str = temp.attributeValue("requirement_locality");
-                String[] locality = str.split(",");
-                int x1 = Integer.parseInt(locality[0]);
-                int y1 = Integer.parseInt(locality[1]);
-                int x2 = Integer.parseInt(locality[2]);
-                int y2 = Integer.parseInt(locality[3]);
-                Oval oval = new Oval(x1 + x2 / 2, y1 + y2 / 2);
-                oval.setText(temp.attributeValue("requirement_text"));
-                oval.setDes(Integer.parseInt(temp.attributeValue("requirement_des")));
-                oval.setBiaohao(Integer.parseInt(temp.attributeValue("requirement_biaohao")));
-                diagram.components.add(oval);
-            }
-
-            Element problemDomain = (Element) spdRoot.elementIterator("Problemdomain").next();
-            for(Iterator i = problemDomain.elementIterator("Element");i.hasNext();){
-                temp = (Element)i.next();
-                String str = temp.attributeValue("problemdomain_locality");
-                String[] locality = str.split(",");
-                int x1 = Integer.parseInt(locality[0]);
-                int y1 = Integer.parseInt(locality[1]);
-                int x2 = Integer.parseInt(locality[2]);
-                int y2 = Integer.parseInt(locality[3]);
-                Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
-                rect.setText(temp.attributeValue("problemdomain_name"));
-                rect.setShortName(temp.attributeValue("problemdomain_shortname"));
-                rect.setState(Integer.parseInt(temp.attributeValue("problemdomain_state")));
-                rect.setCxb(temp.attributeValue("problemdomain_cxb").charAt(0));
-                diagram.components.add(rect);
-            }
-
-            Element Interface = (Element) spdRoot.elementIterator("Interface").next();
-            for(Iterator i = Interface.elementIterator("Element");i.hasNext();){
-                temp = (Element)i.next();
-                String name = temp.attributeValue("line1_name");
-                String str = temp.attributeValue("line1_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
-                Shape toShape = null;
-                Shape fromShape = null;
-                for(int j = 0;j < diagram.components.size();j++){
-                    Shape tempShape = (Shape)diagram.components.get(j);
-                    if(tempShape instanceof Rect){
-                        Rect tempRect = (Rect)tempShape;
-                        if(tempRect.getState() != 2 && tempRect.getShortName().equals(to)){
-                            toShape = tempRect;
-                        }
-                        if(tempRect.getState() == 2 && tempRect.getShortName().equals(from)){
-                            fromShape = tempRect;
-                        }
-                    }
-                }
-                Line line = new Line(fromShape, toShape, 0);
-                line.setName(name);
-                Element tempPhenomenon;
-                for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
-                    tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
-                    Rect phenomenonFromRect = null;
-                    Rect phenomenonToRect = null;
-                    for(int k = 0;k < diagram.components.size();k++){
-                        Shape tempShape = (Shape)diagram.components.get(k);
-                        if(tempShape instanceof Rect){
-                            Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
-                        }
-                    }
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
-                    Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
-                    phenomenon.setConstraining(phenomenonConstraining);
-                    phenomenon.setBiaohao(phenomenonBiaohao);
-                    line.getPhenomena().add(phenomenon);
-                }
-                diagram.components.add(line);
-            }
-
-            Element reference = spdRoot.elementIterator("Reference").next();
-            for(Iterator i = reference.elementIterator("Element");i.hasNext();){
-                temp = (Element)i.next();
-                String name = temp.attributeValue("line2_name");
-                String str = temp.attributeValue("line2_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
-                Shape toShape = null;
-                Shape fromShape = null;
-                for(int j = 0;j < diagram.components.size();j++){
-                    Shape tempShape = (Shape)diagram.components.get(j);
-                    if(tempShape instanceof Rect){
-                        Rect tempRect = (Rect)tempShape;
-                        if(tempRect.getState() != 2 && tempRect.getShortName().equals(to)){
-                            toShape = tempRect;
-                        }
-                    }
-                    if(tempShape instanceof Oval){
-                        Oval tempOval = (Oval)tempShape;
-                        if(tempOval.getText().equals(from)){
-                            fromShape = tempOval;
-                        }
-                    }
-                }
-                Line line = new Line(fromShape, toShape, 1);
-                line.setName(name);
-                Element tempPhenomenon;
-                for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
-                    tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
-                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("requirement"));
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
-                    Rect phenomenonFromRect = null;
-                    Rect phenomenonToRect = null;
-                    for(int k = 0;k < diagram.components.size();k++){
-                        Shape tempShape = (Shape)diagram.components.get(k);
-                        if(tempShape instanceof Rect){
-                            Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
-                        }
-                    }
-                    Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
-                    Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
-                    phenomenon.setConstraining(phenomenonConstraining);
-                    phenomenon.setBiaohao(phenomenonBiaohao);
-                    phenomenon.setRequirement(oval);
-                    line.getPhenomena().add(phenomenon);
-                }
-                diagram.components.add(line);
-            }
-
-            Element constraint = (Element) spdRoot.elementIterator("Constraint").next();
-            for(Iterator i = constraint.elementIterator("Element");i.hasNext();){
-                temp = (Element)i.next();
-                String name = temp.attributeValue("line2_name");
-                String str = temp.attributeValue("line2_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
-                Shape toShape = null;
-                Shape fromShape = null;
-                for(int j = 0;j < diagram.components.size();j++){
-                    Shape tempShape = (Shape)diagram.components.get(j);
-                    if(tempShape instanceof Rect){
-                        Rect tempRect = (Rect)tempShape;
-                        if(tempRect.getState() != 2 && tempRect.getShortName().equals(to)){
-                            toShape = tempRect;
-                        }
-                    }
-                    if(tempShape instanceof Oval){
-                        Oval tempOval = (Oval)tempShape;
-                        if(tempOval.getText().equals(from)){
-                            fromShape = tempOval;
-                        }
-                    }
-                }
-                Line line = new Line(fromShape, toShape, 2);
-                line.setName(name);
-                Element tempPhenomenon;
-                for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
-                    tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
-                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("requirement"));
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
-                    Rect phenomenonFromRect = null;
-                    Rect phenomenonToRect = null;
-                    for(int k = 0;k < diagram.components.size();k++){
-                        Shape tempShape = (Shape)diagram.components.get(k);
-                        if(tempShape instanceof Rect){
-                            Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
-                        }
-                    }
-                    Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
-                    Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
-                    phenomenon.setConstraining(phenomenonConstraining);
-                    phenomenon.setBiaohao(phenomenonBiaohao);
-                    phenomenon.setRequirement(oval);
-                    line.getPhenomena().add(phenomenon);
-                }
-                diagram.components.add(line);
-            }
-            subProblemDiagrams.add(diagram);
-            count++;
-        }
-        ProblemDiagram problemDiagram = subProblemDiagrams.get(index);
-        return problemDiagram.getRequirements();
-    }
-
-    public Object getSubProblenDiagramList(String path) throws DocumentException {
         {
             List<ProblemDiagram> subProblemDiagrams = new LinkedList<>();
             File file = new File(path);
@@ -1483,7 +293,7 @@ public class ClientService implements Serializable{
             SAXReader saxReader = new SAXReader();
             Document project = saxReader.read(file);
             Element rootElement = project.getRootElement();
-            Element filelist = rootElement.elementIterator("filelist").next();
+            Element filelist = rootElement.elementIterator("fileList").next();
             Element subList = filelist.elementIterator("SubProblemDiagramList").next();
             for(Iterator it = subList.elementIterator("SubProblemDiagram"); it.hasNext();){
                 ProblemDiagram diagram = new ProblemDiagram("SubProblemDiagram" + count);
@@ -1492,7 +302,7 @@ public class ClientService implements Serializable{
                 String spdPath = ProblemDiagram.getFilePath(file.getPath()) + spd.getText()+".xml";
                 Document subProDiagram = saxReader.read(spdPath);
                 Element root = subProDiagram.getRootElement();
-                Element spdRoot = (Element) root.elementIterator("data").next();
+                Element spdRoot = root;
                 Element temp;
                 for(Iterator i = spdRoot.elementIterator("Machine");i.hasNext();){
                     temp = (Element)i.next();
@@ -1505,12 +315,11 @@ public class ClientService implements Serializable{
                     Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
                     rect.setText(temp.attributeValue("machine_name"));
                     rect.setShortName(temp.attributeValue("machine_shortname"));
-                    rect.setState(Integer.parseInt(temp.attributeValue("machine_state")));
+                    rect.setState(2);
                     diagram.components.add(rect);
                 }
 
-                Element requirement = (Element) spdRoot.elementIterator("Requirement").next();
-                for(Iterator i = requirement.elementIterator("Element");i.hasNext();){
+                for(Iterator i = spdRoot.elementIterator("Requirement");i.hasNext();){
                     temp = (Element)i.next();
                     String str = temp.attributeValue("requirement_locality");
                     String[] locality = str.split(",");
@@ -1519,14 +328,15 @@ public class ClientService implements Serializable{
                     int x2 = Integer.parseInt(locality[2]);
                     int y2 = Integer.parseInt(locality[3]);
                     Oval oval = new Oval(x1 + x2 / 2, y1 + y2 / 2);
-                    oval.setText(temp.attributeValue("requirement_text"));
-                    oval.setDes(Integer.parseInt(temp.attributeValue("requirement_des")));
-                    oval.setBiaohao(Integer.parseInt(temp.attributeValue("requirement_biaohao")));
+                    oval.setText(temp.attributeValue("requirement_context"));
+                    oval.setDes(1);
+                    oval.setBiaohao(Integer.parseInt(temp.attributeValue("requirement_no")));
                     diagram.components.add(oval);
                 }
 
-                Element problemDomain = (Element) spdRoot.elementIterator("Problemdomain").next();
-                for(Iterator i = problemDomain.elementIterator("Element");i.hasNext();){
+                Element problemDomain = (Element) spdRoot.elementIterator("ProblemDomain").next();
+                Element givenDomain = problemDomain.elementIterator("GivenDomain").next();
+                for(Iterator i = givenDomain.elementIterator("Element");i.hasNext();){
                     temp = (Element)i.next();
                     String str = temp.attributeValue("problemdomain_locality");
                     String[] locality = str.split(",");
@@ -1537,19 +347,34 @@ public class ClientService implements Serializable{
                     Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
                     rect.setText(temp.attributeValue("problemdomain_name"));
                     rect.setShortName(temp.attributeValue("problemdomain_shortname"));
-                    rect.setState(Integer.parseInt(temp.attributeValue("problemdomain_state")));
-                    rect.setCxb(temp.attributeValue("problemdomain_cxb").charAt(0));
+                    rect.setState(1);
+                    rect.setCxb(temp.attributeValue("problemdomain_type").charAt(0));
+                    diagram.components.add(rect);
+                }
+
+                Element designDomain = problemDomain.elementIterator("DesignDomain").next();
+                for(Iterator i = designDomain.elementIterator("Element");i.hasNext();){
+                    temp = (Element)i.next();
+                    String str = temp.attributeValue("problemdomain_locality");
+                    String[] locality = str.split(",");
+                    int x1 = Integer.parseInt(locality[0]);
+                    int y1 = Integer.parseInt(locality[1]);
+                    int x2 = Integer.parseInt(locality[2]);
+                    int y2 = Integer.parseInt(locality[3]);
+                    Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
+                    rect.setText(temp.attributeValue("problemdomain_name"));
+                    rect.setShortName(temp.attributeValue("problemdomain_shortname"));
+                    rect.setState(1);
+                    rect.setCxb(temp.attributeValue("problemdomain_type").charAt(0));
                     diagram.components.add(rect);
                 }
 
                 Element Interface = (Element) spdRoot.elementIterator("Interface").next();
                 for(Iterator i = Interface.elementIterator("Element");i.hasNext();){
                     temp = (Element)i.next();
-                    String name = temp.attributeValue("line1_name");
-                    String str = temp.attributeValue("line1_tofrom");
-                    String[] locality = str.split(",");
-                    String to = locality[0];
-                    String from = locality[1];
+                    String name = temp.attributeValue("interface_name");
+                    String to = temp.attributeValue("interface_to");
+                    String from = temp.attributeValue("interface_from");
                     Shape toShape = null;
                     Shape fromShape = null;
                     for(int j = 0;j < diagram.components.size();j++){
@@ -1569,24 +394,23 @@ public class ClientService implements Serializable{
                     Element tempPhenomenon;
                     for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
                         tempPhenomenon = (Element)j.next();
-                        String phenomenonName = tempPhenomenon.attributeValue("name");
-                        String phenomenonState = tempPhenomenon.attributeValue("state");
-                        String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                        String phenomenonTo = tempPhenomenon.attributeValue("to");
+                        String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                        String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                        String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                        String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
                         Rect phenomenonFromRect = null;
                         Rect phenomenonToRect = null;
                         for(int k = 0;k < diagram.components.size();k++){
                             Shape tempShape = (Shape)diagram.components.get(k);
                             if(tempShape instanceof Rect){
                                 Rect tempRect = (Rect)tempShape;
-                                if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                                if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                                if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                                if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
                             }
                         }
-                        boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                        int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
+                        int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
                         Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
-                        phenomenon.setConstraining(phenomenonConstraining);
+                        phenomenon.setConstraining(false);
                         phenomenon.setBiaohao(phenomenonBiaohao);
                         line.getPhenomena().add(phenomenon);
                     }
@@ -1596,11 +420,9 @@ public class ClientService implements Serializable{
                 Element reference = spdRoot.elementIterator("Reference").next();
                 for(Iterator i = reference.elementIterator("Element");i.hasNext();){
                     temp = (Element)i.next();
-                    String name = temp.attributeValue("line2_name");
-                    String str = temp.attributeValue("line2_tofrom");
-                    String[] locality = str.split(",");
-                    String to = locality[0];
-                    String from = locality[1];
+                    String name = temp.attributeValue("reference_name");
+                    String to = temp.attributeValue("reference_to");
+                    String from = temp.attributeValue("reference_from");
                     Shape toShape = null;
                     Shape fromShape = null;
                     for(int j = 0;j < diagram.components.size();j++){
@@ -1623,21 +445,21 @@ public class ClientService implements Serializable{
                     Element tempPhenomenon;
                     for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
                         tempPhenomenon = (Element)j.next();
-                        String phenomenonName = tempPhenomenon.attributeValue("name");
-                        String phenomenonState = tempPhenomenon.attributeValue("state");
-                        String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                        String phenomenonTo = tempPhenomenon.attributeValue("to");
-                        int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("requirement"));
-                        boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                        int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
+                        String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                        String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                        String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                        String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
+                        int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_requirement"));
+                        boolean phenomenonConstraining = (tempPhenomenon.attributeValue("phenomenon_constraint")).equals("true") ? true : false;
+                        int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
                         Rect phenomenonFromRect = null;
                         Rect phenomenonToRect = null;
                         for(int k = 0;k < diagram.components.size();k++){
                             Shape tempShape = (Shape)diagram.components.get(k);
                             if(tempShape instanceof Rect){
                                 Rect tempRect = (Rect)tempShape;
-                                if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                                if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                                if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                                if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
                             }
                         }
                         Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
@@ -1653,11 +475,9 @@ public class ClientService implements Serializable{
                 Element constraint = (Element) spdRoot.elementIterator("Constraint").next();
                 for(Iterator i = constraint.elementIterator("Element");i.hasNext();){
                     temp = (Element)i.next();
-                    String name = temp.attributeValue("line2_name");
-                    String str = temp.attributeValue("line2_tofrom");
-                    String[] locality = str.split(",");
-                    String to = locality[0];
-                    String from = locality[1];
+                    String name = temp.attributeValue("constraint_name");
+                    String to = temp.attributeValue("constraint_to");
+                    String from = temp.attributeValue("constraint_from");
                     Shape toShape = null;
                     Shape fromShape = null;
                     for(int j = 0;j < diagram.components.size();j++){
@@ -1680,21 +500,1015 @@ public class ClientService implements Serializable{
                     Element tempPhenomenon;
                     for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
                         tempPhenomenon = (Element)j.next();
-                        String phenomenonName = tempPhenomenon.attributeValue("name");
-                        String phenomenonState = tempPhenomenon.attributeValue("state");
-                        String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                        String phenomenonTo = tempPhenomenon.attributeValue("to");
-                        int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("requirement"));
-                        boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                        int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
+                        String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                        String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                        String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                        String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
+                        int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_requirement"));
+                        boolean phenomenonConstraining = (tempPhenomenon.attributeValue("phenomenon_constraint")).equals("true") ? true : false;
+                        int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
                         Rect phenomenonFromRect = null;
                         Rect phenomenonToRect = null;
                         for(int k = 0;k < diagram.components.size();k++){
                             Shape tempShape = (Shape)diagram.components.get(k);
                             if(tempShape instanceof Rect){
                                 Rect tempRect = (Rect)tempShape;
-                                if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                                if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                                if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                                if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                            }
+                        }
+                        Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
+                        Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
+                        phenomenon.setConstraining(phenomenonConstraining);
+                        phenomenon.setBiaohao(phenomenonBiaohao);
+                        phenomenon.setRequirement(oval);
+                        line.getPhenomena().add(phenomenon);
+                    }
+                    diagram.components.add(line);
+                }
+                subProblemDiagrams.add(diagram);
+                count++;
+            }
+            return subProblemDiagrams.get(index).getPhenomenon();
+        }
+    }
+
+    public Object getRectList(String path, int index) throws DocumentException {
+        {
+            List<ProblemDiagram> subProblemDiagrams = new LinkedList<>();
+            File file = new File(path);
+            int count = 1;
+            SAXReader saxReader = new SAXReader();
+            Document project = saxReader.read(file);
+            Element rootElement = project.getRootElement();
+            Element filelist = rootElement.elementIterator("fileList").next();
+            Element subList = filelist.elementIterator("SubProblemDiagramList").next();
+            for(Iterator it = subList.elementIterator("SubProblemDiagram"); it.hasNext();){
+                ProblemDiagram diagram = new ProblemDiagram("SubProblemDiagram" + count);
+                diagram.components = new LinkedList();
+                Element spd = (Element) it.next();
+                String spdPath = ProblemDiagram.getFilePath(file.getPath()) + spd.getText()+".xml";
+                System.out.println(spdPath);
+                Document subProDiagram = saxReader.read(spdPath);
+                Element root = subProDiagram.getRootElement();
+                Element spdRoot = root;
+                Element temp;
+                for(Iterator i = spdRoot.elementIterator("Machine");i.hasNext();){
+                    temp = (Element)i.next();
+                    String str = temp.attributeValue("machine_locality");
+                    String[] locality = str.split(",");
+                    int x1 = Integer.parseInt(locality[0]);
+                    int y1 = Integer.parseInt(locality[1]);
+                    int x2 = Integer.parseInt(locality[2]);
+                    int y2 = Integer.parseInt(locality[3]);
+                    Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
+                    rect.setText(temp.attributeValue("machine_name"));
+                    rect.setShortName(temp.attributeValue("machine_shortname"));
+                    rect.setState(2);
+                    System.out.println(rect.getText());
+                    diagram.components.add(rect);
+                }
+
+                for(Iterator i = spdRoot.elementIterator("Requirement");i.hasNext();){
+                    temp = (Element)i.next();
+                    String str = temp.attributeValue("requirement_locality");
+                    String[] locality = str.split(",");
+                    int x1 = Integer.parseInt(locality[0]);
+                    int y1 = Integer.parseInt(locality[1]);
+                    int x2 = Integer.parseInt(locality[2]);
+                    int y2 = Integer.parseInt(locality[3]);
+                    Oval oval = new Oval(x1 + x2 / 2, y1 + y2 / 2);
+                    oval.setText(temp.attributeValue("requirement_context"));
+                    oval.setDes(1);
+                    oval.setBiaohao(Integer.parseInt(temp.attributeValue("requirement_no")));
+                    diagram.components.add(oval);
+                }
+
+                Element problemDomain = (Element) spdRoot.elementIterator("ProblemDomain").next();
+                Element givenDomain = problemDomain.elementIterator("GivenDomain").next();
+                for(Iterator i = givenDomain.elementIterator("Element");i.hasNext();){
+                    temp = (Element)i.next();
+                    String str = temp.attributeValue("problemdomain_locality");
+                    String[] locality = str.split(",");
+                    int x1 = Integer.parseInt(locality[0]);
+                    int y1 = Integer.parseInt(locality[1]);
+                    int x2 = Integer.parseInt(locality[2]);
+                    int y2 = Integer.parseInt(locality[3]);
+                    Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
+                    rect.setText(temp.attributeValue("problemdomain_name"));
+                    rect.setShortName(temp.attributeValue("problemdomain_shortname"));
+                    rect.setState(1);
+                    rect.setCxb(temp.attributeValue("problemdomain_type").charAt(0));
+                    diagram.components.add(rect);
+                }
+
+                Element designDomain = problemDomain.elementIterator("DesignDomain").next();
+                for(Iterator i = designDomain.elementIterator("Element");i.hasNext();){
+                    temp = (Element)i.next();
+                    String str = temp.attributeValue("problemdomain_locality");
+                    String[] locality = str.split(",");
+                    int x1 = Integer.parseInt(locality[0]);
+                    int y1 = Integer.parseInt(locality[1]);
+                    int x2 = Integer.parseInt(locality[2]);
+                    int y2 = Integer.parseInt(locality[3]);
+                    Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
+                    rect.setText(temp.attributeValue("problemdomain_name"));
+                    rect.setShortName(temp.attributeValue("problemdomain_shortname"));
+                    rect.setState(1);
+                    rect.setCxb(temp.attributeValue("problemdomain_type").charAt(0));
+                    diagram.components.add(rect);
+                }
+
+                Element Interface = (Element) spdRoot.elementIterator("Interface").next();
+                for(Iterator i = Interface.elementIterator("Element");i.hasNext();){
+                    temp = (Element)i.next();
+                    String name = temp.attributeValue("interface_name");
+                    String to = temp.attributeValue("interface_to");
+                    String from = temp.attributeValue("interface_from");
+                    Shape toShape = null;
+                    Shape fromShape = null;
+                    for(int j = 0;j < diagram.components.size();j++){
+                        Shape tempShape = (Shape)diagram.components.get(j);
+                        if(tempShape instanceof Rect){
+                            Rect tempRect = (Rect)tempShape;
+                            if(tempRect.getState() != 2 && tempRect.getShortName().equals(to)){
+                                toShape = tempRect;
+                            }
+                            if(tempRect.getState() == 2 && tempRect.getShortName().equals(from)){
+                                fromShape = tempRect;
+                            }
+                        }
+                    }
+                    Line line = new Line(fromShape, toShape, 0);
+                    line.setName(name);
+                    Element tempPhenomenon;
+                    for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
+                        tempPhenomenon = (Element)j.next();
+                        String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                        String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                        String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                        String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
+                        Rect phenomenonFromRect = null;
+                        Rect phenomenonToRect = null;
+                        for(int k = 0;k < diagram.components.size();k++){
+                            Shape tempShape = (Shape)diagram.components.get(k);
+                            if(tempShape instanceof Rect){
+                                Rect tempRect = (Rect)tempShape;
+                                if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                                if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                            }
+                        }
+                        int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
+                        Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
+                        phenomenon.setConstraining(false);
+                        phenomenon.setBiaohao(phenomenonBiaohao);
+                        line.getPhenomena().add(phenomenon);
+                    }
+                    diagram.components.add(line);
+                }
+
+                Element reference = spdRoot.elementIterator("Reference").next();
+                for(Iterator i = reference.elementIterator("Element");i.hasNext();){
+                    temp = (Element)i.next();
+                    String name = temp.attributeValue("reference_name");
+                    String to = temp.attributeValue("reference_to");
+                    String from = temp.attributeValue("reference_from");
+                    Shape toShape = null;
+                    Shape fromShape = null;
+                    for(int j = 0;j < diagram.components.size();j++){
+                        Shape tempShape = (Shape)diagram.components.get(j);
+                        if(tempShape instanceof Rect){
+                            Rect tempRect = (Rect)tempShape;
+                            if(tempRect.getState() != 2 && tempRect.getShortName().equals(to)){
+                                toShape = tempRect;
+                            }
+                        }
+                        if(tempShape instanceof Oval){
+                            Oval tempOval = (Oval)tempShape;
+                            if(tempOval.getText().equals(from)){
+                                fromShape = tempOval;
+                            }
+                        }
+                    }
+                    Line line = new Line(fromShape, toShape, 1);
+                    line.setName(name);
+                    Element tempPhenomenon;
+                    for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
+                        tempPhenomenon = (Element)j.next();
+                        String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                        String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                        String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                        String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
+                        int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_requirement"));
+                        boolean phenomenonConstraining = (tempPhenomenon.attributeValue("phenomenon_constraint")).equals("true") ? true : false;
+                        int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
+                        Rect phenomenonFromRect = null;
+                        Rect phenomenonToRect = null;
+                        for(int k = 0;k < diagram.components.size();k++){
+                            Shape tempShape = (Shape)diagram.components.get(k);
+                            if(tempShape instanceof Rect){
+                                Rect tempRect = (Rect)tempShape;
+                                if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                                if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                            }
+                        }
+                        Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
+                        Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
+                        phenomenon.setConstraining(phenomenonConstraining);
+                        phenomenon.setBiaohao(phenomenonBiaohao);
+                        phenomenon.setRequirement(oval);
+                        line.getPhenomena().add(phenomenon);
+                    }
+                    diagram.components.add(line);
+                }
+
+                Element constraint = (Element) spdRoot.elementIterator("Constraint").next();
+                for(Iterator i = constraint.elementIterator("Element");i.hasNext();){
+                    temp = (Element)i.next();
+                    String name = temp.attributeValue("constraint_name");
+                    String to = temp.attributeValue("constraint_to");
+                    String from = temp.attributeValue("constraint_from");
+                    Shape toShape = null;
+                    Shape fromShape = null;
+                    for(int j = 0;j < diagram.components.size();j++){
+                        Shape tempShape = (Shape)diagram.components.get(j);
+                        if(tempShape instanceof Rect){
+                            Rect tempRect = (Rect)tempShape;
+                            if(tempRect.getState() != 2 && tempRect.getShortName().equals(to)){
+                                toShape = tempRect;
+                            }
+                        }
+                        if(tempShape instanceof Oval){
+                            Oval tempOval = (Oval)tempShape;
+                            if(tempOval.getText().equals(from)){
+                                fromShape = tempOval;
+                            }
+                        }
+                    }
+                    Line line = new Line(fromShape, toShape, 2);
+                    line.setName(name);
+                    Element tempPhenomenon;
+                    for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
+                        tempPhenomenon = (Element)j.next();
+                        String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                        String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                        String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                        String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
+                        int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_requirement"));
+                        boolean phenomenonConstraining = (tempPhenomenon.attributeValue("phenomenon_constraint")).equals("true") ? true : false;
+                        int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
+                        Rect phenomenonFromRect = null;
+                        Rect phenomenonToRect = null;
+                        for(int k = 0;k < diagram.components.size();k++){
+                            Shape tempShape = (Shape)diagram.components.get(k);
+                            if(tempShape instanceof Rect){
+                                Rect tempRect = (Rect)tempShape;
+                                if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                                if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                            }
+                        }
+                        Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
+                        Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
+                        phenomenon.setConstraining(phenomenonConstraining);
+                        phenomenon.setBiaohao(phenomenonBiaohao);
+                        phenomenon.setRequirement(oval);
+                        line.getPhenomena().add(phenomenon);
+                    }
+                    diagram.components.add(line);
+                }
+                subProblemDiagrams.add(diagram);
+                count++;
+            }
+            return subProblemDiagrams.get(index).getRect();
+        }
+    }
+
+    public Object getLineList(String path, int index) throws DocumentException {
+        {
+            List<ProblemDiagram> subProblemDiagrams = new LinkedList<>();
+            File file = new File(path);
+            int count = 1;
+            SAXReader saxReader = new SAXReader();
+            Document project = saxReader.read(file);
+            Element rootElement = project.getRootElement();
+            Element filelist = rootElement.elementIterator("fileList").next();
+            Element subList = filelist.elementIterator("SubProblemDiagramList").next();
+            for(Iterator it = subList.elementIterator("SubProblemDiagram"); it.hasNext();){
+                ProblemDiagram diagram = new ProblemDiagram("SubProblemDiagram" + count);
+                diagram.components = new LinkedList();
+                Element spd = (Element) it.next();
+                String spdPath = ProblemDiagram.getFilePath(file.getPath()) + spd.getText()+".xml";
+                Document subProDiagram = saxReader.read(spdPath);
+                Element root = subProDiagram.getRootElement();
+                Element spdRoot = root;
+                Element temp;
+                for(Iterator i = spdRoot.elementIterator("Machine");i.hasNext();){
+                    temp = (Element)i.next();
+                    String str = temp.attributeValue("machine_locality");
+                    String[] locality = str.split(",");
+                    int x1 = Integer.parseInt(locality[0]);
+                    int y1 = Integer.parseInt(locality[1]);
+                    int x2 = Integer.parseInt(locality[2]);
+                    int y2 = Integer.parseInt(locality[3]);
+                    Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
+                    rect.setText(temp.attributeValue("machine_name"));
+                    rect.setShortName(temp.attributeValue("machine_shortname"));
+                    rect.setState(2);
+                    diagram.components.add(rect);
+                }
+
+                for(Iterator i = spdRoot.elementIterator("Requirement");i.hasNext();){
+                    temp = (Element)i.next();
+                    String str = temp.attributeValue("requirement_locality");
+                    String[] locality = str.split(",");
+                    int x1 = Integer.parseInt(locality[0]);
+                    int y1 = Integer.parseInt(locality[1]);
+                    int x2 = Integer.parseInt(locality[2]);
+                    int y2 = Integer.parseInt(locality[3]);
+                    Oval oval = new Oval(x1 + x2 / 2, y1 + y2 / 2);
+                    oval.setText(temp.attributeValue("requirement_context"));
+                    oval.setDes(1);
+                    oval.setBiaohao(Integer.parseInt(temp.attributeValue("requirement_no")));
+                    diagram.components.add(oval);
+                }
+
+                Element problemDomain = (Element) spdRoot.elementIterator("ProblemDomain").next();
+                Element givenDomain = problemDomain.elementIterator("GivenDomain").next();
+                for(Iterator i = givenDomain.elementIterator("Element");i.hasNext();){
+                    temp = (Element)i.next();
+                    String str = temp.attributeValue("problemdomain_locality");
+                    String[] locality = str.split(",");
+                    int x1 = Integer.parseInt(locality[0]);
+                    int y1 = Integer.parseInt(locality[1]);
+                    int x2 = Integer.parseInt(locality[2]);
+                    int y2 = Integer.parseInt(locality[3]);
+                    Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
+                    rect.setText(temp.attributeValue("problemdomain_name"));
+                    rect.setShortName(temp.attributeValue("problemdomain_shortname"));
+                    rect.setState(1);
+                    rect.setCxb(temp.attributeValue("problemdomain_type").charAt(0));
+                    diagram.components.add(rect);
+                }
+
+                Element designDomain = problemDomain.elementIterator("DesignDomain").next();
+                for(Iterator i = designDomain.elementIterator("Element");i.hasNext();){
+                    temp = (Element)i.next();
+                    String str = temp.attributeValue("problemdomain_locality");
+                    String[] locality = str.split(",");
+                    int x1 = Integer.parseInt(locality[0]);
+                    int y1 = Integer.parseInt(locality[1]);
+                    int x2 = Integer.parseInt(locality[2]);
+                    int y2 = Integer.parseInt(locality[3]);
+                    Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
+                    rect.setText(temp.attributeValue("problemdomain_name"));
+                    rect.setShortName(temp.attributeValue("problemdomain_shortname"));
+                    rect.setState(1);
+                    rect.setCxb(temp.attributeValue("problemdomain_type").charAt(0));
+                    diagram.components.add(rect);
+                }
+
+                Element Interface = (Element) spdRoot.elementIterator("Interface").next();
+                for(Iterator i = Interface.elementIterator("Element");i.hasNext();){
+                    temp = (Element)i.next();
+                    String name = temp.attributeValue("interface_name");
+                    String to = temp.attributeValue("interface_to");
+                    String from = temp.attributeValue("interface_from");
+                    Shape toShape = null;
+                    Shape fromShape = null;
+                    for(int j = 0;j < diagram.components.size();j++){
+                        Shape tempShape = (Shape)diagram.components.get(j);
+                        if(tempShape instanceof Rect){
+                            Rect tempRect = (Rect)tempShape;
+                            if(tempRect.getState() != 2 && tempRect.getShortName().equals(to)){
+                                toShape = tempRect;
+                            }
+                            if(tempRect.getState() == 2 && tempRect.getShortName().equals(from)){
+                                fromShape = tempRect;
+                            }
+                        }
+                    }
+                    Line line = new Line(fromShape, toShape, 0);
+                    line.setName(name);
+                    Element tempPhenomenon;
+                    for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
+                        tempPhenomenon = (Element)j.next();
+                        String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                        String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                        String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                        String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
+                        Rect phenomenonFromRect = null;
+                        Rect phenomenonToRect = null;
+                        for(int k = 0;k < diagram.components.size();k++){
+                            Shape tempShape = (Shape)diagram.components.get(k);
+                            if(tempShape instanceof Rect){
+                                Rect tempRect = (Rect)tempShape;
+                                if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                                if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                            }
+                        }
+                        int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
+                        Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
+                        phenomenon.setConstraining(false);
+                        phenomenon.setBiaohao(phenomenonBiaohao);
+                        line.getPhenomena().add(phenomenon);
+                    }
+                    diagram.components.add(line);
+                }
+
+                Element reference = spdRoot.elementIterator("Reference").next();
+                for(Iterator i = reference.elementIterator("Element");i.hasNext();){
+                    temp = (Element)i.next();
+                    String name = temp.attributeValue("reference_name");
+                    String to = temp.attributeValue("reference_to");
+                    String from = temp.attributeValue("reference_from");
+                    Shape toShape = null;
+                    Shape fromShape = null;
+                    for(int j = 0;j < diagram.components.size();j++){
+                        Shape tempShape = (Shape)diagram.components.get(j);
+                        if(tempShape instanceof Rect){
+                            Rect tempRect = (Rect)tempShape;
+                            if(tempRect.getState() != 2 && tempRect.getShortName().equals(to)){
+                                toShape = tempRect;
+                            }
+                        }
+                        if(tempShape instanceof Oval){
+                            Oval tempOval = (Oval)tempShape;
+                            if(tempOval.getText().equals(from)){
+                                fromShape = tempOval;
+                            }
+                        }
+                    }
+                    Line line = new Line(fromShape, toShape, 1);
+                    line.setName(name);
+                    Element tempPhenomenon;
+                    for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
+                        tempPhenomenon = (Element)j.next();
+                        String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                        String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                        String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                        String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
+                        int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_requirement"));
+                        boolean phenomenonConstraining = (tempPhenomenon.attributeValue("phenomenon_constraint")).equals("true") ? true : false;
+                        int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
+                        Rect phenomenonFromRect = null;
+                        Rect phenomenonToRect = null;
+                        for(int k = 0;k < diagram.components.size();k++){
+                            Shape tempShape = (Shape)diagram.components.get(k);
+                            if(tempShape instanceof Rect){
+                                Rect tempRect = (Rect)tempShape;
+                                if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                                if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                            }
+                        }
+                        Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
+                        Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
+                        phenomenon.setConstraining(phenomenonConstraining);
+                        phenomenon.setBiaohao(phenomenonBiaohao);
+                        phenomenon.setRequirement(oval);
+                        line.getPhenomena().add(phenomenon);
+                    }
+                    diagram.components.add(line);
+                }
+
+                Element constraint = (Element) spdRoot.elementIterator("Constraint").next();
+                for(Iterator i = constraint.elementIterator("Element");i.hasNext();){
+                    temp = (Element)i.next();
+                    String name = temp.attributeValue("constraint_name");
+                    String to = temp.attributeValue("constraint_to");
+                    String from = temp.attributeValue("constraint_from");
+                    Shape toShape = null;
+                    Shape fromShape = null;
+                    for(int j = 0;j < diagram.components.size();j++){
+                        Shape tempShape = (Shape)diagram.components.get(j);
+                        if(tempShape instanceof Rect){
+                            Rect tempRect = (Rect)tempShape;
+                            if(tempRect.getState() != 2 && tempRect.getShortName().equals(to)){
+                                toShape = tempRect;
+                            }
+                        }
+                        if(tempShape instanceof Oval){
+                            Oval tempOval = (Oval)tempShape;
+                            if(tempOval.getText().equals(from)){
+                                fromShape = tempOval;
+                            }
+                        }
+                    }
+                    Line line = new Line(fromShape, toShape, 2);
+                    line.setName(name);
+                    Element tempPhenomenon;
+                    for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
+                        tempPhenomenon = (Element)j.next();
+                        String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                        String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                        String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                        String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
+                        int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_requirement"));
+                        boolean phenomenonConstraining = (tempPhenomenon.attributeValue("phenomenon_constraint")).equals("true") ? true : false;
+                        int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
+                        Rect phenomenonFromRect = null;
+                        Rect phenomenonToRect = null;
+                        for(int k = 0;k < diagram.components.size();k++){
+                            Shape tempShape = (Shape)diagram.components.get(k);
+                            if(tempShape instanceof Rect){
+                                Rect tempRect = (Rect)tempShape;
+                                if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                                if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                            }
+                        }
+                        Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
+                        Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
+                        phenomenon.setConstraining(phenomenonConstraining);
+                        phenomenon.setBiaohao(phenomenonBiaohao);
+                        phenomenon.setRequirement(oval);
+                        line.getPhenomena().add(phenomenon);
+                    }
+                    diagram.components.add(line);
+                }
+                subProblemDiagrams.add(diagram);
+                count++;
+            }
+            return subProblemDiagrams.get(index).getLines();
+        }
+    }
+
+    public Object getOvalList(String path, int index) throws DocumentException {
+        {
+            List<ProblemDiagram> subProblemDiagrams = new LinkedList<>();
+            File file = new File(path);
+            int count = 1;
+            SAXReader saxReader = new SAXReader();
+            Document project = saxReader.read(file);
+            Element rootElement = project.getRootElement();
+            Element filelist = rootElement.elementIterator("fileList").next();
+            Element subList = filelist.elementIterator("SubProblemDiagramList").next();
+            for(Iterator it = subList.elementIterator("SubProblemDiagram"); it.hasNext();){
+                ProblemDiagram diagram = new ProblemDiagram("SubProblemDiagram" + count);
+                diagram.components = new LinkedList();
+                Element spd = (Element) it.next();
+                String spdPath = ProblemDiagram.getFilePath(file.getPath()) + spd.getText()+".xml";
+                Document subProDiagram = saxReader.read(spdPath);
+                Element root = subProDiagram.getRootElement();
+                Element spdRoot = root;
+                Element temp;
+                for(Iterator i = spdRoot.elementIterator("Machine");i.hasNext();){
+                    temp = (Element)i.next();
+                    String str = temp.attributeValue("machine_locality");
+                    String[] locality = str.split(",");
+                    int x1 = Integer.parseInt(locality[0]);
+                    int y1 = Integer.parseInt(locality[1]);
+                    int x2 = Integer.parseInt(locality[2]);
+                    int y2 = Integer.parseInt(locality[3]);
+                    Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
+                    rect.setText(temp.attributeValue("machine_name"));
+                    rect.setShortName(temp.attributeValue("machine_shortname"));
+                    rect.setState(2);
+                    diagram.components.add(rect);
+                }
+
+                for(Iterator i = spdRoot.elementIterator("Requirement");i.hasNext();){
+                    temp = (Element)i.next();
+                    String str = temp.attributeValue("requirement_locality");
+                    String[] locality = str.split(",");
+                    int x1 = Integer.parseInt(locality[0]);
+                    int y1 = Integer.parseInt(locality[1]);
+                    int x2 = Integer.parseInt(locality[2]);
+                    int y2 = Integer.parseInt(locality[3]);
+                    Oval oval = new Oval(x1 + x2 / 2, y1 + y2 / 2);
+                    oval.setText(temp.attributeValue("requirement_context"));
+                    oval.setDes(1);
+                    oval.setBiaohao(Integer.parseInt(temp.attributeValue("requirement_no")));
+                    diagram.components.add(oval);
+                }
+
+                Element problemDomain = (Element) spdRoot.elementIterator("ProblemDomain").next();
+                Element givenDomain = problemDomain.elementIterator("GivenDomain").next();
+                for(Iterator i = givenDomain.elementIterator("Element");i.hasNext();){
+                    temp = (Element)i.next();
+                    String str = temp.attributeValue("problemdomain_locality");
+                    String[] locality = str.split(",");
+                    int x1 = Integer.parseInt(locality[0]);
+                    int y1 = Integer.parseInt(locality[1]);
+                    int x2 = Integer.parseInt(locality[2]);
+                    int y2 = Integer.parseInt(locality[3]);
+                    Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
+                    rect.setText(temp.attributeValue("problemdomain_name"));
+                    rect.setShortName(temp.attributeValue("problemdomain_shortname"));
+                    rect.setState(1);
+                    rect.setCxb(temp.attributeValue("problemdomain_type").charAt(0));
+                    diagram.components.add(rect);
+                }
+
+                Element designDomain = problemDomain.elementIterator("DesignDomain").next();
+                for(Iterator i = designDomain.elementIterator("Element");i.hasNext();){
+                    temp = (Element)i.next();
+                    String str = temp.attributeValue("problemdomain_locality");
+                    String[] locality = str.split(",");
+                    int x1 = Integer.parseInt(locality[0]);
+                    int y1 = Integer.parseInt(locality[1]);
+                    int x2 = Integer.parseInt(locality[2]);
+                    int y2 = Integer.parseInt(locality[3]);
+                    Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
+                    rect.setText(temp.attributeValue("problemdomain_name"));
+                    rect.setShortName(temp.attributeValue("problemdomain_shortname"));
+                    rect.setState(1);
+                    rect.setCxb(temp.attributeValue("problemdomain_type").charAt(0));
+                    diagram.components.add(rect);
+                }
+
+                Element Interface = (Element) spdRoot.elementIterator("Interface").next();
+                for(Iterator i = Interface.elementIterator("Element");i.hasNext();){
+                    temp = (Element)i.next();
+                    String name = temp.attributeValue("interface_name");
+                    String to = temp.attributeValue("interface_to");
+                    String from = temp.attributeValue("interface_from");
+                    Shape toShape = null;
+                    Shape fromShape = null;
+                    for(int j = 0;j < diagram.components.size();j++){
+                        Shape tempShape = (Shape)diagram.components.get(j);
+                        if(tempShape instanceof Rect){
+                            Rect tempRect = (Rect)tempShape;
+                            if(tempRect.getState() != 2 && tempRect.getShortName().equals(to)){
+                                toShape = tempRect;
+                            }
+                            if(tempRect.getState() == 2 && tempRect.getShortName().equals(from)){
+                                fromShape = tempRect;
+                            }
+                        }
+                    }
+                    Line line = new Line(fromShape, toShape, 0);
+                    line.setName(name);
+                    Element tempPhenomenon;
+                    for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
+                        tempPhenomenon = (Element)j.next();
+                        String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                        String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                        String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                        String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
+                        Rect phenomenonFromRect = null;
+                        Rect phenomenonToRect = null;
+                        for(int k = 0;k < diagram.components.size();k++){
+                            Shape tempShape = (Shape)diagram.components.get(k);
+                            if(tempShape instanceof Rect){
+                                Rect tempRect = (Rect)tempShape;
+                                if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                                if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                            }
+                        }
+                        int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
+                        Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
+                        phenomenon.setConstraining(false);
+                        phenomenon.setBiaohao(phenomenonBiaohao);
+                        line.getPhenomena().add(phenomenon);
+                    }
+                    diagram.components.add(line);
+                }
+
+                Element reference = spdRoot.elementIterator("Reference").next();
+                for(Iterator i = reference.elementIterator("Element");i.hasNext();){
+                    temp = (Element)i.next();
+                    String name = temp.attributeValue("reference_name");
+                    String to = temp.attributeValue("reference_to");
+                    String from = temp.attributeValue("reference_from");
+                    Shape toShape = null;
+                    Shape fromShape = null;
+                    for(int j = 0;j < diagram.components.size();j++){
+                        Shape tempShape = (Shape)diagram.components.get(j);
+                        if(tempShape instanceof Rect){
+                            Rect tempRect = (Rect)tempShape;
+                            if(tempRect.getState() != 2 && tempRect.getShortName().equals(to)){
+                                toShape = tempRect;
+                            }
+                        }
+                        if(tempShape instanceof Oval){
+                            Oval tempOval = (Oval)tempShape;
+                            if(tempOval.getText().equals(from)){
+                                fromShape = tempOval;
+                            }
+                        }
+                    }
+                    Line line = new Line(fromShape, toShape, 1);
+                    line.setName(name);
+                    Element tempPhenomenon;
+                    for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
+                        tempPhenomenon = (Element)j.next();
+                        String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                        String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                        String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                        String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
+                        int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_requirement"));
+                        boolean phenomenonConstraining = (tempPhenomenon.attributeValue("phenomenon_constraint")).equals("true") ? true : false;
+                        int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
+                        Rect phenomenonFromRect = null;
+                        Rect phenomenonToRect = null;
+                        for(int k = 0;k < diagram.components.size();k++){
+                            Shape tempShape = (Shape)diagram.components.get(k);
+                            if(tempShape instanceof Rect){
+                                Rect tempRect = (Rect)tempShape;
+                                if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                                if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                            }
+                        }
+                        Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
+                        Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
+                        phenomenon.setConstraining(phenomenonConstraining);
+                        phenomenon.setBiaohao(phenomenonBiaohao);
+                        phenomenon.setRequirement(oval);
+                        line.getPhenomena().add(phenomenon);
+                    }
+                    diagram.components.add(line);
+                }
+
+                Element constraint = (Element) spdRoot.elementIterator("Constraint").next();
+                for(Iterator i = constraint.elementIterator("Element");i.hasNext();){
+                    temp = (Element)i.next();
+                    String name = temp.attributeValue("constraint_name");
+                    String to = temp.attributeValue("constraint_to");
+                    String from = temp.attributeValue("constraint_from");
+                    Shape toShape = null;
+                    Shape fromShape = null;
+                    for(int j = 0;j < diagram.components.size();j++){
+                        Shape tempShape = (Shape)diagram.components.get(j);
+                        if(tempShape instanceof Rect){
+                            Rect tempRect = (Rect)tempShape;
+                            if(tempRect.getState() != 2 && tempRect.getShortName().equals(to)){
+                                toShape = tempRect;
+                            }
+                        }
+                        if(tempShape instanceof Oval){
+                            Oval tempOval = (Oval)tempShape;
+                            if(tempOval.getText().equals(from)){
+                                fromShape = tempOval;
+                            }
+                        }
+                    }
+                    Line line = new Line(fromShape, toShape, 2);
+                    line.setName(name);
+                    Element tempPhenomenon;
+                    for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
+                        tempPhenomenon = (Element)j.next();
+                        String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                        String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                        String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                        String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
+                        int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_requirement"));
+                        boolean phenomenonConstraining = (tempPhenomenon.attributeValue("phenomenon_constraint")).equals("true") ? true : false;
+                        int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
+                        Rect phenomenonFromRect = null;
+                        Rect phenomenonToRect = null;
+                        for(int k = 0;k < diagram.components.size();k++){
+                            Shape tempShape = (Shape)diagram.components.get(k);
+                            if(tempShape instanceof Rect){
+                                Rect tempRect = (Rect)tempShape;
+                                if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                                if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                            }
+                        }
+                        Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
+                        Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
+                        phenomenon.setConstraining(phenomenonConstraining);
+                        phenomenon.setBiaohao(phenomenonBiaohao);
+                        phenomenon.setRequirement(oval);
+                        line.getPhenomena().add(phenomenon);
+                    }
+                    diagram.components.add(line);
+                }
+                subProblemDiagrams.add(diagram);
+                count++;
+            }
+            return subProblemDiagrams.get(index).getRequirements();
+        }
+    }
+
+    public Object getSubProblenDiagramList(String path) throws DocumentException {
+        {
+            List<ProblemDiagram> subProblemDiagrams = new LinkedList<>();
+            File file = new File(path);
+            int count = 1;
+            SAXReader saxReader = new SAXReader();
+            Document project = saxReader.read(file);
+            Element rootElement = project.getRootElement();
+            Element filelist = rootElement.elementIterator("fileList").next();
+            Element subList = filelist.elementIterator("SubProblemDiagramList").next();
+            for(Iterator it = subList.elementIterator("SubProblemDiagram"); it.hasNext();){
+                ProblemDiagram diagram = new ProblemDiagram("SubProblemDiagram" + count);
+                diagram.components = new LinkedList();
+                Element spd = (Element) it.next();
+                String spdPath = ProblemDiagram.getFilePath(file.getPath()) + spd.getText()+".xml";
+                Document subProDiagram = saxReader.read(spdPath);
+                Element root = subProDiagram.getRootElement();
+                Element spdRoot = root;
+                Element temp;
+                for(Iterator i = spdRoot.elementIterator("Machine");i.hasNext();){
+                    temp = (Element)i.next();
+                    String str = temp.attributeValue("machine_locality");
+                    String[] locality = str.split(",");
+                    int x1 = Integer.parseInt(locality[0]);
+                    int y1 = Integer.parseInt(locality[1]);
+                    int x2 = Integer.parseInt(locality[2]);
+                    int y2 = Integer.parseInt(locality[3]);
+                    Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
+                    rect.setText(temp.attributeValue("machine_name"));
+                    rect.setShortName(temp.attributeValue("machine_shortname"));
+                    rect.setState(2);
+                    diagram.components.add(rect);
+                }
+
+                for(Iterator i = spdRoot.elementIterator("Requirement");i.hasNext();){
+                    temp = (Element)i.next();
+                    String str = temp.attributeValue("requirement_locality");
+                    String[] locality = str.split(",");
+                    int x1 = Integer.parseInt(locality[0]);
+                    int y1 = Integer.parseInt(locality[1]);
+                    int x2 = Integer.parseInt(locality[2]);
+                    int y2 = Integer.parseInt(locality[3]);
+                    Oval oval = new Oval(x1 + x2 / 2, y1 + y2 / 2);
+                    oval.setText(temp.attributeValue("requirement_context"));
+                    oval.setDes(1);
+                    oval.setBiaohao(Integer.parseInt(temp.attributeValue("requirement_no")));
+                    diagram.components.add(oval);
+                }
+
+                Element problemDomain = (Element) spdRoot.elementIterator("ProblemDomain").next();
+                Element givenDomain = problemDomain.elementIterator("GivenDomain").next();
+                for(Iterator i = givenDomain.elementIterator("Element");i.hasNext();){
+                    temp = (Element)i.next();
+                    String str = temp.attributeValue("problemdomain_locality");
+                    String[] locality = str.split(",");
+                    int x1 = Integer.parseInt(locality[0]);
+                    int y1 = Integer.parseInt(locality[1]);
+                    int x2 = Integer.parseInt(locality[2]);
+                    int y2 = Integer.parseInt(locality[3]);
+                    Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
+                    rect.setText(temp.attributeValue("problemdomain_name"));
+                    rect.setShortName(temp.attributeValue("problemdomain_shortname"));
+                    rect.setState(1);
+                    rect.setCxb(temp.attributeValue("problemdomain_type").charAt(0));
+                    diagram.components.add(rect);
+                }
+
+                Element designDomain = problemDomain.elementIterator("DesignDomain").next();
+                for(Iterator i = designDomain.elementIterator("Element");i.hasNext();){
+                    temp = (Element)i.next();
+                    String str = temp.attributeValue("problemdomain_locality");
+                    String[] locality = str.split(",");
+                    int x1 = Integer.parseInt(locality[0]);
+                    int y1 = Integer.parseInt(locality[1]);
+                    int x2 = Integer.parseInt(locality[2]);
+                    int y2 = Integer.parseInt(locality[3]);
+                    Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
+                    rect.setText(temp.attributeValue("problemdomain_name"));
+                    rect.setShortName(temp.attributeValue("problemdomain_shortname"));
+                    rect.setState(1);
+                    rect.setCxb(temp.attributeValue("problemdomain_type").charAt(0));
+                    diagram.components.add(rect);
+                }
+
+                Element Interface = (Element) spdRoot.elementIterator("Interface").next();
+                for(Iterator i = Interface.elementIterator("Element");i.hasNext();){
+                    temp = (Element)i.next();
+                    String name = temp.attributeValue("interface_name");
+                    String to = temp.attributeValue("interface_to");
+                    String from = temp.attributeValue("interface_from");
+                    Shape toShape = null;
+                    Shape fromShape = null;
+                    for(int j = 0;j < diagram.components.size();j++){
+                        Shape tempShape = (Shape)diagram.components.get(j);
+                        if(tempShape instanceof Rect){
+                            Rect tempRect = (Rect)tempShape;
+                            if(tempRect.getState() != 2 && tempRect.getShortName().equals(to)){
+                                toShape = tempRect;
+                            }
+                            if(tempRect.getState() == 2 && tempRect.getShortName().equals(from)){
+                                fromShape = tempRect;
+                            }
+                        }
+                    }
+                    Line line = new Line(fromShape, toShape, 0);
+                    line.setName(name);
+                    Element tempPhenomenon;
+                    for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
+                        tempPhenomenon = (Element)j.next();
+                        String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                        String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                        String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                        String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
+                        Rect phenomenonFromRect = null;
+                        Rect phenomenonToRect = null;
+                        for(int k = 0;k < diagram.components.size();k++){
+                            Shape tempShape = (Shape)diagram.components.get(k);
+                            if(tempShape instanceof Rect){
+                                Rect tempRect = (Rect)tempShape;
+                                if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                                if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                            }
+                        }
+                        int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
+                        Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
+                        phenomenon.setConstraining(false);
+                        phenomenon.setBiaohao(phenomenonBiaohao);
+                        line.getPhenomena().add(phenomenon);
+                    }
+                    diagram.components.add(line);
+                }
+
+                Element reference = spdRoot.elementIterator("Reference").next();
+                for(Iterator i = reference.elementIterator("Element");i.hasNext();){
+                    temp = (Element)i.next();
+                    String name = temp.attributeValue("reference_name");
+                    String to = temp.attributeValue("reference_to");
+                    String from = temp.attributeValue("reference_from");
+                    Shape toShape = null;
+                    Shape fromShape = null;
+                    for(int j = 0;j < diagram.components.size();j++){
+                        Shape tempShape = (Shape)diagram.components.get(j);
+                        if(tempShape instanceof Rect){
+                            Rect tempRect = (Rect)tempShape;
+                            if(tempRect.getState() != 2 && tempRect.getShortName().equals(to)){
+                                toShape = tempRect;
+                            }
+                        }
+                        if(tempShape instanceof Oval){
+                            Oval tempOval = (Oval)tempShape;
+                            if(tempOval.getText().equals(from)){
+                                fromShape = tempOval;
+                            }
+                        }
+                    }
+                    Line line = new Line(fromShape, toShape, 1);
+                    line.setName(name);
+                    Element tempPhenomenon;
+                    for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
+                        tempPhenomenon = (Element)j.next();
+                        String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                        String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                        String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                        String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
+                        int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_requirement"));
+                        boolean phenomenonConstraining = (tempPhenomenon.attributeValue("phenomenon_constraint")).equals("true") ? true : false;
+                        int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
+                        Rect phenomenonFromRect = null;
+                        Rect phenomenonToRect = null;
+                        for(int k = 0;k < diagram.components.size();k++){
+                            Shape tempShape = (Shape)diagram.components.get(k);
+                            if(tempShape instanceof Rect){
+                                Rect tempRect = (Rect)tempShape;
+                                if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                                if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                            }
+                        }
+                        Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
+                        Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
+                        phenomenon.setConstraining(phenomenonConstraining);
+                        phenomenon.setBiaohao(phenomenonBiaohao);
+                        phenomenon.setRequirement(oval);
+                        line.getPhenomena().add(phenomenon);
+                    }
+                    diagram.components.add(line);
+                }
+
+                Element constraint = (Element) spdRoot.elementIterator("Constraint").next();
+                for(Iterator i = constraint.elementIterator("Element");i.hasNext();){
+                    temp = (Element)i.next();
+                    String name = temp.attributeValue("constraint_name");
+                    String to = temp.attributeValue("constraint_to");
+                    String from = temp.attributeValue("constraint_from");
+                    Shape toShape = null;
+                    Shape fromShape = null;
+                    for(int j = 0;j < diagram.components.size();j++){
+                        Shape tempShape = (Shape)diagram.components.get(j);
+                        if(tempShape instanceof Rect){
+                            Rect tempRect = (Rect)tempShape;
+                            if(tempRect.getState() != 2 && tempRect.getShortName().equals(to)){
+                                toShape = tempRect;
+                            }
+                        }
+                        if(tempShape instanceof Oval){
+                            Oval tempOval = (Oval)tempShape;
+                            if(tempOval.getText().equals(from)){
+                                fromShape = tempOval;
+                            }
+                        }
+                    }
+                    Line line = new Line(fromShape, toShape, 2);
+                    line.setName(name);
+                    Element tempPhenomenon;
+                    for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
+                        tempPhenomenon = (Element)j.next();
+                        String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                        String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                        String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                        String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
+                        int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_requirement"));
+                        boolean phenomenonConstraining = (tempPhenomenon.attributeValue("phenomenon_constraint")).equals("true") ? true : false;
+                        int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
+                        Rect phenomenonFromRect = null;
+                        Rect phenomenonToRect = null;
+                        for(int k = 0;k < diagram.components.size();k++){
+                            Shape tempShape = (Shape)diagram.components.get(k);
+                            if(tempShape instanceof Rect){
+                                Rect tempRect = (Rect)tempShape;
+                                if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                                if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
                             }
                         }
                         Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
@@ -1719,10 +1533,10 @@ public class ClientService implements Serializable{
         SAXReader saxReader = new SAXReader();
         Document project = saxReader.read(file);
         Element rootElement = project.getRootElement();
-        Element filelist = rootElement.elementIterator("filelist").next();
+        Element filelist = rootElement.elementIterator("fileList").next();
         int senCount = 1;
-        Element senList = filelist.elementIterator("SenarioFilelist").next();
-        for(Iterator it = senList.elementIterator("SenarioDiagram");it.hasNext();){
+        Element senList = filelist.elementIterator("SenarioGraphList").next();
+        for(Iterator it = senList.elementIterator("SenarioGraph");it.hasNext();){
             Element sd = (Element) it.next();
             String sdPath = ProblemDiagram.getFilePath(file.getPath()) + sd.getText()+".xml";
             File sdFile = new File(sdPath);
@@ -1739,10 +1553,10 @@ public class ClientService implements Serializable{
         SAXReader saxReader = new SAXReader();
         Document project = saxReader.read(file);
         Element rootElement = project.getRootElement();
-        Element filelist = rootElement.elementIterator("filelist").next();
+        Element filelist = rootElement.elementIterator("fileList").next();
         int senCount = 1;
-        Element senList = filelist.elementIterator("SenarioFilelist").next();
-        for(Iterator it = senList.elementIterator("SenarioDiagram");it.hasNext();){
+        Element senList = filelist.elementIterator("SenarioGraphList").next();
+        for(Iterator it = senList.elementIterator("SenarioGraph");it.hasNext();){
             Element sd = (Element) it.next();
             String sdPath = ProblemDiagram.getFilePath(file.getPath()) + sd.getText()+".xml";
             File sdFile = new File(sdPath);
@@ -1759,10 +1573,10 @@ public class ClientService implements Serializable{
         SAXReader saxReader = new SAXReader();
         Document project = saxReader.read(file);
         Element rootElement = project.getRootElement();
-        Element filelist = rootElement.elementIterator("filelist").next();
+        Element filelist = rootElement.elementIterator("fileList").next();
         int senCount = 1;
-        Element senList = filelist.elementIterator("SenarioFilelist").next();
-        for(Iterator it = senList.elementIterator("SenarioDiagram");it.hasNext();){
+        Element senList = filelist.elementIterator("SenarioGraphList").next();
+        for(Iterator it = senList.elementIterator("SenarioGraph");it.hasNext();){
             Element sd = (Element) it.next();
             String sdPath = ProblemDiagram.getFilePath(file.getPath()) + sd.getText()+".xml";
             File sdFile = new File(sdPath);
@@ -1775,15 +1589,13 @@ public class ClientService implements Serializable{
 
     public Object getDiagramList(String path) throws DocumentException{
         List<ProblemDiagram> subProblemDiagrams = new LinkedList<>();
-        List<ClockDiagram> clockDiagrams = new LinkedList<>();
         List<ScenarioDiagram> scenarioDiagrams = new LinkedList<>();
-        ProblemDiagram myProblemDiagram;
         File file = new File(path);
         int count = 1;
         SAXReader saxReader = new SAXReader();
         Document project = saxReader.read(file);
         Element rootElement = project.getRootElement();
-        Element filelist = rootElement.elementIterator("filelist").next();
+        Element filelist = rootElement.elementIterator("fileList").next();
         Element subList = filelist.elementIterator("SubProblemDiagramList").next();
         for(Iterator it = subList.elementIterator("SubProblemDiagram"); it.hasNext();){
             ProblemDiagram diagram = new ProblemDiagram("SubProblemDiagram" + count);
@@ -1792,7 +1604,7 @@ public class ClientService implements Serializable{
             String spdPath = ProblemDiagram.getFilePath(file.getPath()) + spd.getText()+".xml";
             Document subProDiagram = saxReader.read(spdPath);
             Element root = subProDiagram.getRootElement();
-            Element spdRoot = (Element) root.elementIterator("data").next();
+            Element spdRoot = root;
             Element temp;
             for(Iterator i = spdRoot.elementIterator("Machine");i.hasNext();){
                 temp = (Element)i.next();
@@ -1805,12 +1617,11 @@ public class ClientService implements Serializable{
                 Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
                 rect.setText(temp.attributeValue("machine_name"));
                 rect.setShortName(temp.attributeValue("machine_shortname"));
-                rect.setState(Integer.parseInt(temp.attributeValue("machine_state")));
+                rect.setState(2);
                 diagram.components.add(rect);
             }
 
-            Element requirement = (Element) spdRoot.elementIterator("Requirement").next();
-            for(Iterator i = requirement.elementIterator("Element");i.hasNext();){
+            for(Iterator i = spdRoot.elementIterator("Requirement");i.hasNext();){
                 temp = (Element)i.next();
                 String str = temp.attributeValue("requirement_locality");
                 String[] locality = str.split(",");
@@ -1819,14 +1630,15 @@ public class ClientService implements Serializable{
                 int x2 = Integer.parseInt(locality[2]);
                 int y2 = Integer.parseInt(locality[3]);
                 Oval oval = new Oval(x1 + x2 / 2, y1 + y2 / 2);
-                oval.setText(temp.attributeValue("requirement_text"));
-                oval.setDes(Integer.parseInt(temp.attributeValue("requirement_des")));
-                oval.setBiaohao(Integer.parseInt(temp.attributeValue("requirement_biaohao")));
+                oval.setText(temp.attributeValue("requirement_context"));
+                oval.setDes(1);
+                oval.setBiaohao(Integer.parseInt(temp.attributeValue("requirement_no")));
                 diagram.components.add(oval);
             }
 
-            Element problemDomain = (Element) spdRoot.elementIterator("Problemdomain").next();
-            for(Iterator i = problemDomain.elementIterator("Element");i.hasNext();){
+            Element problemDomain = (Element) spdRoot.elementIterator("ProblemDomain").next();
+            Element givenDomain = problemDomain.elementIterator("GivenDomain").next();
+            for(Iterator i = givenDomain.elementIterator("Element");i.hasNext();){
                 temp = (Element)i.next();
                 String str = temp.attributeValue("problemdomain_locality");
                 String[] locality = str.split(",");
@@ -1837,19 +1649,34 @@ public class ClientService implements Serializable{
                 Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
                 rect.setText(temp.attributeValue("problemdomain_name"));
                 rect.setShortName(temp.attributeValue("problemdomain_shortname"));
-                rect.setState(Integer.parseInt(temp.attributeValue("problemdomain_state")));
-                rect.setCxb(temp.attributeValue("problemdomain_cxb").charAt(0));
+                rect.setState(1);
+                rect.setCxb(temp.attributeValue("problemdomain_type").charAt(0));
+                diagram.components.add(rect);
+            }
+
+            Element designDomain = problemDomain.elementIterator("DesignDomain").next();
+            for(Iterator i = designDomain.elementIterator("Element");i.hasNext();){
+                temp = (Element)i.next();
+                String str = temp.attributeValue("problemdomain_locality");
+                String[] locality = str.split(",");
+                int x1 = Integer.parseInt(locality[0]);
+                int y1 = Integer.parseInt(locality[1]);
+                int x2 = Integer.parseInt(locality[2]);
+                int y2 = Integer.parseInt(locality[3]);
+                Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
+                rect.setText(temp.attributeValue("problemdomain_name"));
+                rect.setShortName(temp.attributeValue("problemdomain_shortname"));
+                rect.setState(1);
+                rect.setCxb(temp.attributeValue("problemdomain_type").charAt(0));
                 diagram.components.add(rect);
             }
 
             Element Interface = (Element) spdRoot.elementIterator("Interface").next();
             for(Iterator i = Interface.elementIterator("Element");i.hasNext();){
                 temp = (Element)i.next();
-                String name = temp.attributeValue("line1_name");
-                String str = temp.attributeValue("line1_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
+                String name = temp.attributeValue("interface_name");
+                String to = temp.attributeValue("interface_to");
+                String from = temp.attributeValue("interface_from");
                 Shape toShape = null;
                 Shape fromShape = null;
                 for(int j = 0;j < diagram.components.size();j++){
@@ -1869,24 +1696,23 @@ public class ClientService implements Serializable{
                 Element tempPhenomenon;
                 for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
                     tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
+                    String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                    String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                    String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                    String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
                     Rect phenomenonFromRect = null;
                     Rect phenomenonToRect = null;
                     for(int k = 0;k < diagram.components.size();k++){
                         Shape tempShape = (Shape)diagram.components.get(k);
                         if(tempShape instanceof Rect){
                             Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
                         }
                     }
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
+                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
                     Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
-                    phenomenon.setConstraining(phenomenonConstraining);
+                    phenomenon.setConstraining(false);
                     phenomenon.setBiaohao(phenomenonBiaohao);
                     line.getPhenomena().add(phenomenon);
                 }
@@ -1896,11 +1722,9 @@ public class ClientService implements Serializable{
             Element reference = spdRoot.elementIterator("Reference").next();
             for(Iterator i = reference.elementIterator("Element");i.hasNext();){
                 temp = (Element)i.next();
-                String name = temp.attributeValue("line2_name");
-                String str = temp.attributeValue("line2_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
+                String name = temp.attributeValue("reference_name");
+                String to = temp.attributeValue("reference_to");
+                String from = temp.attributeValue("reference_from");
                 Shape toShape = null;
                 Shape fromShape = null;
                 for(int j = 0;j < diagram.components.size();j++){
@@ -1923,21 +1747,21 @@ public class ClientService implements Serializable{
                 Element tempPhenomenon;
                 for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
                     tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
-                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("requirement"));
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
+                    String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                    String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                    String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                    String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
+                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_requirement"));
+                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("phenomenon_constraint")).equals("true") ? true : false;
+                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
                     Rect phenomenonFromRect = null;
                     Rect phenomenonToRect = null;
                     for(int k = 0;k < diagram.components.size();k++){
                         Shape tempShape = (Shape)diagram.components.get(k);
                         if(tempShape instanceof Rect){
                             Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
                         }
                     }
                     Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
@@ -1953,11 +1777,9 @@ public class ClientService implements Serializable{
             Element constraint = (Element) spdRoot.elementIterator("Constraint").next();
             for(Iterator i = constraint.elementIterator("Element");i.hasNext();){
                 temp = (Element)i.next();
-                String name = temp.attributeValue("line2_name");
-                String str = temp.attributeValue("line2_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
+                String name = temp.attributeValue("constraint_name");
+                String to = temp.attributeValue("constraint_to");
+                String from = temp.attributeValue("constraint_from");
                 Shape toShape = null;
                 Shape fromShape = null;
                 for(int j = 0;j < diagram.components.size();j++){
@@ -1980,21 +1802,21 @@ public class ClientService implements Serializable{
                 Element tempPhenomenon;
                 for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
                     tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
-                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("requirement"));
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
+                    String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                    String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                    String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                    String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
+                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_requirement"));
+                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("phenomenon_constraint")).equals("true") ? true : false;
+                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
                     Rect phenomenonFromRect = null;
                     Rect phenomenonToRect = null;
                     for(int k = 0;k < diagram.components.size();k++){
                         Shape tempShape = (Shape)diagram.components.get(k);
                         if(tempShape instanceof Rect){
                             Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
                         }
                     }
                     Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
@@ -2007,15 +1829,11 @@ public class ClientService implements Serializable{
                 diagram.components.add(line);
             }
             subProblemDiagrams.add(diagram);
-            ClockDiagram clockDiagram = new ClockDiagram(diagram);
-            clockDiagram.setTitle("ClockDiagram" + count);
-            clockDiagrams.add(clockDiagram);
             count++;
         }
-        myProblemDiagram = new ProblemDiagram("ProblemDiagram",file);
         int senCount = 1;
-        Element senList = filelist.elementIterator("SenarioFilelist").next();
-        for(Iterator it = senList.elementIterator("SenarioDiagram");it.hasNext();){
+        Element senList = filelist.elementIterator("SenarioGraphList").next();
+        for(Iterator it = senList.elementIterator("SenarioGraph");it.hasNext();){
             Element sd = (Element) it.next();
             String sdPath = ProblemDiagram.getFilePath(file.getPath()) + sd.getText()+".xml";
             File sdFile = new File(sdPath);
@@ -2034,12 +1852,13 @@ public class ClientService implements Serializable{
         List<ClockDiagram> clockDiagrams = new LinkedList<>();
         List<ScenarioDiagram> scenarioDiagrams = new LinkedList<>();
         ProblemDiagram myProblemDiagram;
+
         File file = new File(xmlPath);
         int count = 1;
         SAXReader saxReader = new SAXReader();
         Document project = saxReader.read(file);
         Element rootElement = project.getRootElement();
-        Element filelist = rootElement.elementIterator("filelist").next();
+        Element filelist = rootElement.elementIterator("fileList").next();
         Element subList = filelist.elementIterator("SubProblemDiagramList").next();
         for(Iterator it = subList.elementIterator("SubProblemDiagram"); it.hasNext();){
             ProblemDiagram diagram = new ProblemDiagram("SubProblemDiagram" + count);
@@ -2048,7 +1867,7 @@ public class ClientService implements Serializable{
             String spdPath = ProblemDiagram.getFilePath(file.getPath()) + spd.getText()+".xml";
             Document subProDiagram = saxReader.read(spdPath);
             Element root = subProDiagram.getRootElement();
-            Element spdRoot = (Element) root.elementIterator("data").next();
+            Element spdRoot = root;
             Element temp;
             for(Iterator i = spdRoot.elementIterator("Machine");i.hasNext();){
                 temp = (Element)i.next();
@@ -2061,12 +1880,11 @@ public class ClientService implements Serializable{
                 Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
                 rect.setText(temp.attributeValue("machine_name"));
                 rect.setShortName(temp.attributeValue("machine_shortname"));
-                rect.setState(Integer.parseInt(temp.attributeValue("machine_state")));
+                rect.setState(2);
                 diagram.components.add(rect);
             }
 
-            Element requirement = (Element) spdRoot.elementIterator("Requirement").next();
-            for(Iterator i = requirement.elementIterator("Element");i.hasNext();){
+            for(Iterator i = spdRoot.elementIterator("Requirement");i.hasNext();){
                 temp = (Element)i.next();
                 String str = temp.attributeValue("requirement_locality");
                 String[] locality = str.split(",");
@@ -2075,14 +1893,15 @@ public class ClientService implements Serializable{
                 int x2 = Integer.parseInt(locality[2]);
                 int y2 = Integer.parseInt(locality[3]);
                 Oval oval = new Oval(x1 + x2 / 2, y1 + y2 / 2);
-                oval.setText(temp.attributeValue("requirement_text"));
-                oval.setDes(Integer.parseInt(temp.attributeValue("requirement_des")));
-                oval.setBiaohao(Integer.parseInt(temp.attributeValue("requirement_biaohao")));
+                oval.setText(temp.attributeValue("requirement_context"));
+                oval.setDes(1);
+                oval.setBiaohao(Integer.parseInt(temp.attributeValue("requirement_no")));
                 diagram.components.add(oval);
             }
 
-            Element problemDomain = (Element) spdRoot.elementIterator("Problemdomain").next();
-            for(Iterator i = problemDomain.elementIterator("Element");i.hasNext();){
+            Element problemDomain = (Element) spdRoot.elementIterator("ProblemDomain").next();
+            Element givenDomain = problemDomain.elementIterator("GivenDomain").next();
+            for(Iterator i = givenDomain.elementIterator("Element");i.hasNext();){
                 temp = (Element)i.next();
                 String str = temp.attributeValue("problemdomain_locality");
                 String[] locality = str.split(",");
@@ -2093,19 +1912,34 @@ public class ClientService implements Serializable{
                 Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
                 rect.setText(temp.attributeValue("problemdomain_name"));
                 rect.setShortName(temp.attributeValue("problemdomain_shortname"));
-                rect.setState(Integer.parseInt(temp.attributeValue("problemdomain_state")));
-                rect.setCxb(temp.attributeValue("problemdomain_cxb").charAt(0));
+                rect.setState(1);
+                rect.setCxb(temp.attributeValue("problemdomain_type").charAt(0));
+                diagram.components.add(rect);
+            }
+
+            Element designDomain = problemDomain.elementIterator("DesignDomain").next();
+            for(Iterator i = designDomain.elementIterator("Element");i.hasNext();){
+                temp = (Element)i.next();
+                String str = temp.attributeValue("problemdomain_locality");
+                String[] locality = str.split(",");
+                int x1 = Integer.parseInt(locality[0]);
+                int y1 = Integer.parseInt(locality[1]);
+                int x2 = Integer.parseInt(locality[2]);
+                int y2 = Integer.parseInt(locality[3]);
+                Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
+                rect.setText(temp.attributeValue("problemdomain_name"));
+                rect.setShortName(temp.attributeValue("problemdomain_shortname"));
+                rect.setState(1);
+                rect.setCxb(temp.attributeValue("problemdomain_type").charAt(0));
                 diagram.components.add(rect);
             }
 
             Element Interface = (Element) spdRoot.elementIterator("Interface").next();
             for(Iterator i = Interface.elementIterator("Element");i.hasNext();){
                 temp = (Element)i.next();
-                String name = temp.attributeValue("line1_name");
-                String str = temp.attributeValue("line1_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
+                String name = temp.attributeValue("interface_name");
+                String to = temp.attributeValue("interface_to");
+                String from = temp.attributeValue("interface_from");
                 Shape toShape = null;
                 Shape fromShape = null;
                 for(int j = 0;j < diagram.components.size();j++){
@@ -2125,24 +1959,23 @@ public class ClientService implements Serializable{
                 Element tempPhenomenon;
                 for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
                     tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
+                    String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                    String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                    String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                    String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
                     Rect phenomenonFromRect = null;
                     Rect phenomenonToRect = null;
                     for(int k = 0;k < diagram.components.size();k++){
                         Shape tempShape = (Shape)diagram.components.get(k);
                         if(tempShape instanceof Rect){
                             Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
                         }
                     }
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
+                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
                     Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
-                    phenomenon.setConstraining(phenomenonConstraining);
+                    phenomenon.setConstraining(false);
                     phenomenon.setBiaohao(phenomenonBiaohao);
                     line.getPhenomena().add(phenomenon);
                 }
@@ -2152,11 +1985,9 @@ public class ClientService implements Serializable{
             Element reference = spdRoot.elementIterator("Reference").next();
             for(Iterator i = reference.elementIterator("Element");i.hasNext();){
                 temp = (Element)i.next();
-                String name = temp.attributeValue("line2_name");
-                String str = temp.attributeValue("line2_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
+                String name = temp.attributeValue("reference_name");
+                String to = temp.attributeValue("reference_to");
+                String from = temp.attributeValue("reference_from");
                 Shape toShape = null;
                 Shape fromShape = null;
                 for(int j = 0;j < diagram.components.size();j++){
@@ -2179,21 +2010,21 @@ public class ClientService implements Serializable{
                 Element tempPhenomenon;
                 for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
                     tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
-                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("requirement"));
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
+                    String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                    String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                    String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                    String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
+                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_requirement"));
+                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("phenomenon_constraint")).equals("true") ? true : false;
+                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
                     Rect phenomenonFromRect = null;
                     Rect phenomenonToRect = null;
                     for(int k = 0;k < diagram.components.size();k++){
                         Shape tempShape = (Shape)diagram.components.get(k);
                         if(tempShape instanceof Rect){
                             Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
                         }
                     }
                     Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
@@ -2209,11 +2040,9 @@ public class ClientService implements Serializable{
             Element constraint = (Element) spdRoot.elementIterator("Constraint").next();
             for(Iterator i = constraint.elementIterator("Element");i.hasNext();){
                 temp = (Element)i.next();
-                String name = temp.attributeValue("line2_name");
-                String str = temp.attributeValue("line2_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
+                String name = temp.attributeValue("constraint_name");
+                String to = temp.attributeValue("constraint_to");
+                String from = temp.attributeValue("constraint_from");
                 Shape toShape = null;
                 Shape fromShape = null;
                 for(int j = 0;j < diagram.components.size();j++){
@@ -2236,21 +2065,21 @@ public class ClientService implements Serializable{
                 Element tempPhenomenon;
                 for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
                     tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
-                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("requirement"));
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
+                    String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                    String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                    String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                    String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
+                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_requirement"));
+                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("phenomenon_constraint")).equals("true") ? true : false;
+                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
                     Rect phenomenonFromRect = null;
                     Rect phenomenonToRect = null;
                     for(int k = 0;k < diagram.components.size();k++){
                         Shape tempShape = (Shape)diagram.components.get(k);
                         if(tempShape instanceof Rect){
                             Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
                         }
                     }
                     Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
@@ -2263,15 +2092,11 @@ public class ClientService implements Serializable{
                 diagram.components.add(line);
             }
             subProblemDiagrams.add(diagram);
-            ClockDiagram clockDiagram = new ClockDiagram(diagram);
-            clockDiagram.setTitle("ClockDiagram" + count);
-            clockDiagrams.add(clockDiagram);
             count++;
         }
-        myProblemDiagram = new ProblemDiagram("ProblemDiagram",file);
         int senCount = 1;
-        Element senList = filelist.elementIterator("SenarioFilelist").next();
-        for(Iterator it = senList.elementIterator("SenarioDiagram");it.hasNext();){
+        Element senList = filelist.elementIterator("SenarioGraphList").next();
+        for(Iterator it = senList.elementIterator("SenarioGraph");it.hasNext();){
             Element sd = (Element) it.next();
             String sdPath = ProblemDiagram.getFilePath(file.getPath()) + sd.getText()+".xml";
             File sdFile = new File(sdPath);
@@ -2285,6 +2110,7 @@ public class ClientService implements Serializable{
         Map<String, Phenomenon> phenomena = new HashMap<>();
         LinkedList<StateMachine> stateMachines = new LinkedList<>();
         file = new File(owlPath);
+        if(!file.exists()) return null;
         for(int i = 0;i < scenarioDiagrams.size();i++){
             ProblemDiagram diagram = subProblemDiagrams.get(i);
             ScenarioDiagram intDiagram = scenarioDiagrams.get(i);
@@ -2378,7 +2204,7 @@ public class ClientService implements Serializable{
         SAXReader saxReader = new SAXReader();
         Document project = saxReader.read(file);
         Element rootElement = project.getRootElement();
-        Element filelist = rootElement.elementIterator("filelist").next();
+        Element filelist = rootElement.elementIterator("fileList").next();
         Element subList = filelist.elementIterator("SubProblemDiagramList").next();
         for(Iterator it = subList.elementIterator("SubProblemDiagram"); it.hasNext();){
             ProblemDiagram diagram = new ProblemDiagram("SubProblemDiagram" + count);
@@ -2387,7 +2213,7 @@ public class ClientService implements Serializable{
             String spdPath = ProblemDiagram.getFilePath(file.getPath()) + spd.getText()+".xml";
             Document subProDiagram = saxReader.read(spdPath);
             Element root = subProDiagram.getRootElement();
-            Element spdRoot = (Element) root.elementIterator("data").next();
+            Element spdRoot = root;
             Element temp;
             for(Iterator i = spdRoot.elementIterator("Machine");i.hasNext();){
                 temp = (Element)i.next();
@@ -2400,12 +2226,11 @@ public class ClientService implements Serializable{
                 Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
                 rect.setText(temp.attributeValue("machine_name"));
                 rect.setShortName(temp.attributeValue("machine_shortname"));
-                rect.setState(Integer.parseInt(temp.attributeValue("machine_state")));
+                rect.setState(2);
                 diagram.components.add(rect);
             }
 
-            Element requirement = (Element) spdRoot.elementIterator("Requirement").next();
-            for(Iterator i = requirement.elementIterator("Element");i.hasNext();){
+            for(Iterator i = spdRoot.elementIterator("Requirement");i.hasNext();){
                 temp = (Element)i.next();
                 String str = temp.attributeValue("requirement_locality");
                 String[] locality = str.split(",");
@@ -2414,14 +2239,15 @@ public class ClientService implements Serializable{
                 int x2 = Integer.parseInt(locality[2]);
                 int y2 = Integer.parseInt(locality[3]);
                 Oval oval = new Oval(x1 + x2 / 2, y1 + y2 / 2);
-                oval.setText(temp.attributeValue("requirement_text"));
-                oval.setDes(Integer.parseInt(temp.attributeValue("requirement_des")));
-                oval.setBiaohao(Integer.parseInt(temp.attributeValue("requirement_biaohao")));
+                oval.setText(temp.attributeValue("requirement_context"));
+                oval.setDes(1);
+                oval.setBiaohao(Integer.parseInt(temp.attributeValue("requirement_no")));
                 diagram.components.add(oval);
             }
 
-            Element problemDomain = (Element) spdRoot.elementIterator("Problemdomain").next();
-            for(Iterator i = problemDomain.elementIterator("Element");i.hasNext();){
+            Element problemDomain = (Element) spdRoot.elementIterator("ProblemDomain").next();
+            Element givenDomain = problemDomain.elementIterator("GivenDomain").next();
+            for(Iterator i = givenDomain.elementIterator("Element");i.hasNext();){
                 temp = (Element)i.next();
                 String str = temp.attributeValue("problemdomain_locality");
                 String[] locality = str.split(",");
@@ -2432,19 +2258,34 @@ public class ClientService implements Serializable{
                 Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
                 rect.setText(temp.attributeValue("problemdomain_name"));
                 rect.setShortName(temp.attributeValue("problemdomain_shortname"));
-                rect.setState(Integer.parseInt(temp.attributeValue("problemdomain_state")));
-                rect.setCxb(temp.attributeValue("problemdomain_cxb").charAt(0));
+                rect.setState(1);
+                rect.setCxb(temp.attributeValue("problemdomain_type").charAt(0));
+                diagram.components.add(rect);
+            }
+
+            Element designDomain = problemDomain.elementIterator("DesignDomain").next();
+            for(Iterator i = designDomain.elementIterator("Element");i.hasNext();){
+                temp = (Element)i.next();
+                String str = temp.attributeValue("problemdomain_locality");
+                String[] locality = str.split(",");
+                int x1 = Integer.parseInt(locality[0]);
+                int y1 = Integer.parseInt(locality[1]);
+                int x2 = Integer.parseInt(locality[2]);
+                int y2 = Integer.parseInt(locality[3]);
+                Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
+                rect.setText(temp.attributeValue("problemdomain_name"));
+                rect.setShortName(temp.attributeValue("problemdomain_shortname"));
+                rect.setState(1);
+                rect.setCxb(temp.attributeValue("problemdomain_type").charAt(0));
                 diagram.components.add(rect);
             }
 
             Element Interface = (Element) spdRoot.elementIterator("Interface").next();
             for(Iterator i = Interface.elementIterator("Element");i.hasNext();){
                 temp = (Element)i.next();
-                String name = temp.attributeValue("line1_name");
-                String str = temp.attributeValue("line1_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
+                String name = temp.attributeValue("interface_name");
+                String to = temp.attributeValue("interface_to");
+                String from = temp.attributeValue("interface_from");
                 Shape toShape = null;
                 Shape fromShape = null;
                 for(int j = 0;j < diagram.components.size();j++){
@@ -2464,24 +2305,24 @@ public class ClientService implements Serializable{
                 Element tempPhenomenon;
                 for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
                     tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
+                    String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                    String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                    System.out.println("1" + phenomenonState);
+                    String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                    String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
                     Rect phenomenonFromRect = null;
                     Rect phenomenonToRect = null;
                     for(int k = 0;k < diagram.components.size();k++){
                         Shape tempShape = (Shape)diagram.components.get(k);
                         if(tempShape instanceof Rect){
                             Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
                         }
                     }
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
+                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
                     Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
-                    phenomenon.setConstraining(phenomenonConstraining);
+                    phenomenon.setConstraining(false);
                     phenomenon.setBiaohao(phenomenonBiaohao);
                     line.getPhenomena().add(phenomenon);
                 }
@@ -2491,11 +2332,9 @@ public class ClientService implements Serializable{
             Element reference = spdRoot.elementIterator("Reference").next();
             for(Iterator i = reference.elementIterator("Element");i.hasNext();){
                 temp = (Element)i.next();
-                String name = temp.attributeValue("line2_name");
-                String str = temp.attributeValue("line2_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
+                String name = temp.attributeValue("reference_name");
+                String to = temp.attributeValue("reference_to");
+                String from = temp.attributeValue("reference_from");
                 Shape toShape = null;
                 Shape fromShape = null;
                 for(int j = 0;j < diagram.components.size();j++){
@@ -2518,21 +2357,22 @@ public class ClientService implements Serializable{
                 Element tempPhenomenon;
                 for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
                     tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
-                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("requirement"));
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
+                    String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                    String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                    System.out.println("2" + phenomenonState);
+                    String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                    String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
+                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_requirement"));
+                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("phenomenon_constraint")).equals("true") ? true : false;
+                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
                     Rect phenomenonFromRect = null;
                     Rect phenomenonToRect = null;
                     for(int k = 0;k < diagram.components.size();k++){
                         Shape tempShape = (Shape)diagram.components.get(k);
                         if(tempShape instanceof Rect){
                             Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
                         }
                     }
                     Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
@@ -2548,11 +2388,9 @@ public class ClientService implements Serializable{
             Element constraint = (Element) spdRoot.elementIterator("Constraint").next();
             for(Iterator i = constraint.elementIterator("Element");i.hasNext();){
                 temp = (Element)i.next();
-                String name = temp.attributeValue("line2_name");
-                String str = temp.attributeValue("line2_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
+                String name = temp.attributeValue("constraint_name");
+                String to = temp.attributeValue("constraint_to");
+                String from = temp.attributeValue("constraint_from");
                 Shape toShape = null;
                 Shape fromShape = null;
                 for(int j = 0;j < diagram.components.size();j++){
@@ -2575,21 +2413,22 @@ public class ClientService implements Serializable{
                 Element tempPhenomenon;
                 for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
                     tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
-                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("requirement"));
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
+                    String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                    String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                    System.out.println("3" + phenomenonState);
+                    String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                    String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
+                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_requirement"));
+                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("phenomenon_constraint")).equals("true") ? true : false;
+                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
                     Rect phenomenonFromRect = null;
                     Rect phenomenonToRect = null;
                     for(int k = 0;k < diagram.components.size();k++){
                         Shape tempShape = (Shape)diagram.components.get(k);
                         if(tempShape instanceof Rect){
                             Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
                         }
                     }
                     Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
@@ -2616,8 +2455,6 @@ public class ClientService implements Serializable{
     }
 
     public Object getAllReferenceList(String path) throws DocumentException {
-        List<ProblemDiagram> subProblemDiagrams = new LinkedList<>();
-        List<Phenomenon> phenomenonList = new LinkedList<>();
         File file = new File(path);
         ProblemDiagram problemDiagram = new ProblemDiagram("ProblemDiagram",file);
         return problemDiagram.getReference();
@@ -2630,10 +2467,10 @@ public class ClientService implements Serializable{
         SAXReader saxReader = new SAXReader();
         Document project = saxReader.read(file);
         Element rootElement = project.getRootElement();
-        Element filelist = rootElement.elementIterator("filelist").next();
+        Element filelist = rootElement.elementIterator("fileList").next();
         int senCount = 1;
-        Element senList = filelist.elementIterator("SenarioFilelist").next();
-        for(Iterator it = senList.elementIterator("SenarioDiagram");it.hasNext();){
+        Element senList = filelist.elementIterator("SenarioGraphList").next();
+        for(Iterator it = senList.elementIterator("SenarioGraph");it.hasNext();){
             Element sd = (Element) it.next();
             String sdPath = ProblemDiagram.getFilePath(file.getPath()) + sd.getText()+".xml";
             File sdFile = new File(sdPath);
@@ -2855,7 +2692,7 @@ public class ClientService implements Serializable{
         SAXReader saxReader = new SAXReader();
         Document project = saxReader.read(file);
         Element rootElement = project.getRootElement();
-        Element filelist = rootElement.elementIterator("filelist").next();
+        Element filelist = rootElement.elementIterator("fileList").next();
         Element subList = filelist.elementIterator("SubProblemDiagramList").next();
         for(Iterator it = subList.elementIterator("SubProblemDiagram"); it.hasNext();){
             ProblemDiagram diagram = new ProblemDiagram("SubProblemDiagram" + count);
@@ -2864,7 +2701,7 @@ public class ClientService implements Serializable{
             String spdPath = ProblemDiagram.getFilePath(file.getPath()) + spd.getText()+".xml";
             Document subProDiagram = saxReader.read(spdPath);
             Element root = subProDiagram.getRootElement();
-            Element spdRoot = (Element) root.elementIterator("data").next();
+            Element spdRoot = root;
             Element temp;
             for(Iterator i = spdRoot.elementIterator("Machine");i.hasNext();){
                 temp = (Element)i.next();
@@ -2877,12 +2714,11 @@ public class ClientService implements Serializable{
                 Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
                 rect.setText(temp.attributeValue("machine_name"));
                 rect.setShortName(temp.attributeValue("machine_shortname"));
-                rect.setState(Integer.parseInt(temp.attributeValue("machine_state")));
+                rect.setState(2);
                 diagram.components.add(rect);
             }
 
-            Element requirement = (Element) spdRoot.elementIterator("Requirement").next();
-            for(Iterator i = requirement.elementIterator("Element");i.hasNext();){
+            for(Iterator i = spdRoot.elementIterator("Requirement");i.hasNext();){
                 temp = (Element)i.next();
                 String str = temp.attributeValue("requirement_locality");
                 String[] locality = str.split(",");
@@ -2891,14 +2727,15 @@ public class ClientService implements Serializable{
                 int x2 = Integer.parseInt(locality[2]);
                 int y2 = Integer.parseInt(locality[3]);
                 Oval oval = new Oval(x1 + x2 / 2, y1 + y2 / 2);
-                oval.setText(temp.attributeValue("requirement_text"));
-                oval.setDes(Integer.parseInt(temp.attributeValue("requirement_des")));
-                oval.setBiaohao(Integer.parseInt(temp.attributeValue("requirement_biaohao")));
+                oval.setText(temp.attributeValue("requirement_context"));
+                oval.setDes(1);
+                oval.setBiaohao(Integer.parseInt(temp.attributeValue("requirement_no")));
                 diagram.components.add(oval);
             }
 
-            Element problemDomain = (Element) spdRoot.elementIterator("Problemdomain").next();
-            for(Iterator i = problemDomain.elementIterator("Element");i.hasNext();){
+            Element problemDomain = (Element) spdRoot.elementIterator("ProblemDomain").next();
+            Element givenDomain = problemDomain.elementIterator("GivenDomain").next();
+            for(Iterator i = givenDomain.elementIterator("Element");i.hasNext();){
                 temp = (Element)i.next();
                 String str = temp.attributeValue("problemdomain_locality");
                 String[] locality = str.split(",");
@@ -2909,19 +2746,34 @@ public class ClientService implements Serializable{
                 Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
                 rect.setText(temp.attributeValue("problemdomain_name"));
                 rect.setShortName(temp.attributeValue("problemdomain_shortname"));
-                rect.setState(Integer.parseInt(temp.attributeValue("problemdomain_state")));
-                rect.setCxb(temp.attributeValue("problemdomain_cxb").charAt(0));
+                rect.setState(1);
+                rect.setCxb(temp.attributeValue("problemdomain_type").charAt(0));
+                diagram.components.add(rect);
+            }
+
+            Element designDomain = problemDomain.elementIterator("DesignDomain").next();
+            for(Iterator i = designDomain.elementIterator("Element");i.hasNext();){
+                temp = (Element)i.next();
+                String str = temp.attributeValue("problemdomain_locality");
+                String[] locality = str.split(",");
+                int x1 = Integer.parseInt(locality[0]);
+                int y1 = Integer.parseInt(locality[1]);
+                int x2 = Integer.parseInt(locality[2]);
+                int y2 = Integer.parseInt(locality[3]);
+                Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
+                rect.setText(temp.attributeValue("problemdomain_name"));
+                rect.setShortName(temp.attributeValue("problemdomain_shortname"));
+                rect.setState(1);
+                rect.setCxb(temp.attributeValue("problemdomain_type").charAt(0));
                 diagram.components.add(rect);
             }
 
             Element Interface = (Element) spdRoot.elementIterator("Interface").next();
             for(Iterator i = Interface.elementIterator("Element");i.hasNext();){
                 temp = (Element)i.next();
-                String name = temp.attributeValue("line1_name");
-                String str = temp.attributeValue("line1_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
+                String name = temp.attributeValue("interface_name");
+                String to = temp.attributeValue("interface_to");
+                String from = temp.attributeValue("interface_from");
                 Shape toShape = null;
                 Shape fromShape = null;
                 for(int j = 0;j < diagram.components.size();j++){
@@ -2941,24 +2793,23 @@ public class ClientService implements Serializable{
                 Element tempPhenomenon;
                 for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
                     tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
+                    String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                    String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                    String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                    String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
                     Rect phenomenonFromRect = null;
                     Rect phenomenonToRect = null;
                     for(int k = 0;k < diagram.components.size();k++){
                         Shape tempShape = (Shape)diagram.components.get(k);
                         if(tempShape instanceof Rect){
                             Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
                         }
                     }
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
+                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
                     Phenomenon phenomenon = new Phenomenon(phenomenonName, phenomenonState, phenomenonFromRect, phenomenonToRect);
-                    phenomenon.setConstraining(phenomenonConstraining);
+                    phenomenon.setConstraining(false);
                     phenomenon.setBiaohao(phenomenonBiaohao);
                     line.getPhenomena().add(phenomenon);
                 }
@@ -2968,11 +2819,9 @@ public class ClientService implements Serializable{
             Element reference = spdRoot.elementIterator("Reference").next();
             for(Iterator i = reference.elementIterator("Element");i.hasNext();){
                 temp = (Element)i.next();
-                String name = temp.attributeValue("line2_name");
-                String str = temp.attributeValue("line2_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
+                String name = temp.attributeValue("reference_name");
+                String to = temp.attributeValue("reference_to");
+                String from = temp.attributeValue("reference_from");
                 Shape toShape = null;
                 Shape fromShape = null;
                 for(int j = 0;j < diagram.components.size();j++){
@@ -2995,21 +2844,21 @@ public class ClientService implements Serializable{
                 Element tempPhenomenon;
                 for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
                     tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
-                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("requirement"));
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
+                    String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                    String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                    String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                    String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
+                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_requirement"));
+                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("phenomenon_constraint")).equals("true") ? true : false;
+                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
                     Rect phenomenonFromRect = null;
                     Rect phenomenonToRect = null;
                     for(int k = 0;k < diagram.components.size();k++){
                         Shape tempShape = (Shape)diagram.components.get(k);
                         if(tempShape instanceof Rect){
                             Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
                         }
                     }
                     Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
@@ -3025,11 +2874,9 @@ public class ClientService implements Serializable{
             Element constraint = (Element) spdRoot.elementIterator("Constraint").next();
             for(Iterator i = constraint.elementIterator("Element");i.hasNext();){
                 temp = (Element)i.next();
-                String name = temp.attributeValue("line2_name");
-                String str = temp.attributeValue("line2_tofrom");
-                String[] locality = str.split(",");
-                String to = locality[0];
-                String from = locality[1];
+                String name = temp.attributeValue("constraint_name");
+                String to = temp.attributeValue("constraint_to");
+                String from = temp.attributeValue("constraint_from");
                 Shape toShape = null;
                 Shape fromShape = null;
                 for(int j = 0;j < diagram.components.size();j++){
@@ -3052,21 +2899,21 @@ public class ClientService implements Serializable{
                 Element tempPhenomenon;
                 for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
                     tempPhenomenon = (Element)j.next();
-                    String phenomenonName = tempPhenomenon.attributeValue("name");
-                    String phenomenonState = tempPhenomenon.attributeValue("state");
-                    String phenomenonFrom = tempPhenomenon.attributeValue("from");
-                    String phenomenonTo = tempPhenomenon.attributeValue("to");
-                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("requirement"));
-                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("constraining")).equals("True") ? true : false;
-                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("biaohao"));
+                    String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
+                    String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
+                    String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
+                    String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
+                    int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_requirement"));
+                    boolean phenomenonConstraining = (tempPhenomenon.attributeValue("phenomenon_constraint")).equals("true") ? true : false;
+                    int phenomenonBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_no"));
                     Rect phenomenonFromRect = null;
                     Rect phenomenonToRect = null;
                     for(int k = 0;k < diagram.components.size();k++){
                         Shape tempShape = (Shape)diagram.components.get(k);
                         if(tempShape instanceof Rect){
                             Rect tempRect = (Rect)tempShape;
-                            if(tempRect.getText().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
-                            if(tempRect.getText().equals(phenomenonTo)) phenomenonToRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonFrom)) phenomenonFromRect = tempRect;
+                            if(tempRect.getShortName().equals(phenomenonTo)) phenomenonToRect = tempRect;
                         }
                     }
                     Oval oval = diagram.getRequirement(pehnomenonRequirementBiaohao);
@@ -3085,8 +2932,8 @@ public class ClientService implements Serializable{
             count++;
         }
         int senCount = 1;
-        Element senList = filelist.elementIterator("SenarioFilelist").next();
-        for(Iterator it = senList.elementIterator("SenarioDiagram");it.hasNext();){
+        Element senList = filelist.elementIterator("SenarioGraphList").next();
+        for(Iterator it = senList.elementIterator("SenarioGraph");it.hasNext();){
             Element sd = (Element) it.next();
             String sdPath = ProblemDiagram.getFilePath(file.getPath()) + sd.getText()+".xml";
             File sdFile = new File(sdPath);
@@ -3265,10 +3112,10 @@ public class ClientService implements Serializable{
         SAXReader saxReader = new SAXReader();
         Document project = saxReader.read(file);
         Element rootElement = project.getRootElement();
-        Element filelist = rootElement.elementIterator("filelist").next();
+        Element filelist = rootElement.elementIterator("fileList").next();
         int senCount = 1;
-        Element senList = filelist.elementIterator("SenarioFilelist").next();
-        for(Iterator it = senList.elementIterator("SenarioDiagram");it.hasNext();){
+        Element senList = filelist.elementIterator("SenarioGraphList").next();
+        for(Iterator it = senList.elementIterator("SenarioGraph");it.hasNext();){
             Element sd = (Element) it.next();
             String sdPath = ProblemDiagram.getFilePath(file.getPath()) + sd.getText()+".xml";
             File sdFile = new File(sdPath);
