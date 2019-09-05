@@ -2356,6 +2356,7 @@ public class ClientService implements Serializable{
                 line.setName(name);
                 Element tempPhenomenon;
                 for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
+                    System.out.println(i);
                     tempPhenomenon = (Element)j.next();
                     String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
                     String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
@@ -2530,63 +2531,47 @@ public class ClientService implements Serializable{
             }
 
             //step2
-            boolean behHaveCircle = false;
-            boolean expHaveCircle = false;
-            for(int j = 0;j < behSize;j++){
-                TestCircle behTc = new TestCircle(behSize, behGraph);
-                behTc.findCycle(j);
-                if(behTc.getHasCycle()){
-                    behHaveCircle = true;
-                    break;
-                }
-            }
-            for(int j = 0;j < expSize;j++){
-                TestCircle expTc = new TestCircle(expSize, expGraph);
-                expTc.findCycle(j);
-                if(expTc.getHasCycle()){
-                    expHaveCircle = true;
-                    break;
-                }
-            }
-            if((behHaveCircle && !expHaveCircle)||(!behHaveCircle && expHaveCircle)) return false;
-            if(behHaveCircle && expHaveCircle){
-                Map<Integer, Boolean> coincidenceVisited = new HashMap<>();
-                for (int j = 0; j < scenarioDiagram.getScenarios().size(); j++) {
-                    Scenario scenario = scenarioDiagram.getScenarios().get(j);
-                    if (scenario.getState() == 2) coincidenceVisited.put(scenario.getTo().getNumber(), false);
-                }
-                if(coincidenceVisited.size() == 0) return false;
-                for (int j = 0; j < scenarioDiagram.getScenarios().size(); j++) {
-                    Scenario scenario = scenarioDiagram.getScenarios().get(j);
-                    if (scenario.getState() == 2 && !coincidenceVisited.get(scenario.getTo().getNumber())) {
-                        int behStart = -1;
-                        int expStart = -1;
-                        if (scenario.getFrom().getNumber() == 0 && scenario.getTo().getNumber() == 1) {
-                            behStart = behMap.get(scenario.getFrom().getNumber());
-                            expStart = expMap.get(scenario.getTo().getNumber());
-                        } else {
-                            behStart = behMap.get(scenario.getTo().getNumber());
-                            expStart = expMap.get(scenario.getFrom().getNumber());
-                        }
-                        TestCircle behTc = new TestCircle(behMap.size(), behGraph);
-                        TestCircle expTc = new TestCircle(expMap.size(), expGraph);
-                        behTc.findCycle(behStart);
-                        expTc.findCycle(expStart);
-                        if (behTc.getHasCycle() && expTc.getHasCycle()) {
-                            for (int m = 0; m < behTc.getCircles().size(); m++) {
-                                ArrayList<Integer> behCircle = behTc.getCircles().get(m);
-                                if (behMap.inverse().get(behCircle.get(0)) == behMap.inverse().get(behStart)) {
-                                    for (int n = 0; n < expTc.getCircles().size(); n++) {
-                                        ArrayList<Integer> expCircle = expTc.getCircles().get(n);
-                                        if (expMap.inverse().get(expCircle.get(0)) == expMap.inverse().get(expStart)) {
-                                            if (behMap.inverse().get(behCircle.get(behCircle.size() - 1)) == expMap.inverse().get(expCircle.get(expCircle.size() - 1))) {
-                                                if (coincidenceVisited.containsKey(behMap.inverse().get(behCircle.get(behCircle.size() - 1)))) {
-                                                    coincidenceVisited.put(behMap.inverse().get(behCircle.get(behCircle.size() - 1)), true);
+            for(int j = 0;j < scenarioDiagram.getScenarios().size();j++){
+                Scenario scenario = scenarioDiagram.getScenarios().get(j);
+                if(scenario.getState() == 0 || scenario.getState() == 2 || scenario.getState() == 4){
+                    int behStart = -1;
+                    int expStart = -1;
+                    if(scenario.getFrom().getState() == 0 && scenario.getTo().getState() == 1){
+                        behStart = behMap.get(scenario.getFrom().getNumber());
+                        expStart = expMap.get(scenario.getTo().getNumber());
+                    }
+                    else{
+                        behStart = behMap.get(scenario.getTo().getNumber());
+                        expStart = expMap.get(scenario.getFrom().getNumber());
+                    }
+                    TestCircle behTc = new TestCircle(behMap.size(),behGraph);
+                    TestCircle expTc = new TestCircle(expMap.size(),expGraph);
+                    behTc.findCycle(behStart);
+                    expTc.findCycle(expStart);
+                    if(behTc.getHasCycle() && expTc.getHasCycle()){
+                        for(int m = 0;m < behTc.getCircles().size();m++){
+                            ArrayList<Integer> behCircle = behTc.getCircles().get(m);
+                            int behLast = behMap.inverse().get(behCircle.get(behCircle.size() - 1));
+                            System.out.println("behlast:" + behLast);
+                            if(behMap.inverse().get(behCircle.get(0)) == behMap.inverse().get(behStart)){
+                                for(int n = 0;n < expTc.getCircles().size();n++){
+                                    boolean flag = false;
+                                    ArrayList<Integer> expCircle = expTc.getCircles().get(n);
+                                    if(expMap.inverse().get(expCircle.get(0)) == expMap.inverse().get(expStart)){
+                                        int expLast = expMap.inverse().get(expCircle.get(expCircle.size() - 1));
+                                        System.out.println("expLast:" + expLast);
+                                        for(int k = 0;k < scenarioDiagram.getScenarios().size();k++){
+                                            Scenario tmpScenario = scenarioDiagram.getScenarios().get(k);
+                                            if(tmpScenario.getState() == 0 || tmpScenario.getState() == 2 ||tmpScenario.getState() == 4){
+                                                if(tmpScenario.getFrom().getNumber() == behLast && tmpScenario.getTo().getNumber() == expLast
+                                                        || tmpScenario.getTo().getNumber() == behLast && tmpScenario.getFrom().getNumber() == expLast){
+                                                    flag = true;
+                                                    break;
                                                 }
-                                                break;
-                                            } else {
-                                                return false;
                                             }
+                                        }
+                                        if(!flag){
+                                            return false;
                                         }
                                     }
                                 }
@@ -3171,86 +3156,50 @@ public class ClientService implements Serializable{
 
 
             //step2
-            boolean behHaveCircle = false;
-            boolean expHaveCircle = false;
-            for(int j = 0;j < behSize;j++){
-                TestCircle behTc = new TestCircle(behSize, behGraph);
-                behTc.findCycle(j);
-                if(behTc.getHasCycle()){
-                    behHaveCircle = true;
-                    break;
-                }
-            }
-            for(int j = 0;j < expSize;j++){
-                TestCircle expTc = new TestCircle(expSize, expGraph);
-                expTc.findCycle(j);
-                if(expTc.getHasCycle()){
-                    expHaveCircle = true;
-                    break;
-                }
-            }
-            if(behHaveCircle && !expHaveCircle){
-                circle = circle + "Behaviour Interactions Exist Circle";
-                circle = circle + ";" + i;
-                circle = circle + "\"}";
-                return circle;
-            }
-            if(!behHaveCircle && expHaveCircle){
-                circle = circle + "Expect Interactions Exist Circle";
-                circle = circle + ";" + i;
-                circle = circle + "\"}";
-                return circle;
-            }
-            Map<Integer, Boolean> coincidenceVisited = new HashMap<>();
-            for (int j = 0; j < scenarioDiagram.getScenarios().size(); j++) {
+            for(int j = 0;j < scenarioDiagram.getScenarios().size();j++){
                 Scenario scenario = scenarioDiagram.getScenarios().get(j);
-                if (scenario.getState() == 2) coincidenceVisited.put(scenario.getTo().getNumber(), false);
-            }
-            if(coincidenceVisited.size() == 0){
-                circle = circle + "Both Expect Interactions And Behaviour Interactions Have Circle";
-                circle = circle + ";" + i;
-                circle = circle + "\"}";
-                return circle;
-            }
-            for (int j = 0; j < scenarioDiagram.getScenarios().size(); j++) {
-                Scenario scenario = scenarioDiagram.getScenarios().get(j);
-                if (scenario.getState() == 2 && !coincidenceVisited.get(scenario.getTo().getNumber())) {
+                if(scenario.getState() == 0 || scenario.getState() == 2 || scenario.getState() == 4){
                     int behStart = -1;
                     int expStart = -1;
-                    if (scenario.getFrom().getNumber() == 0 && scenario.getTo().getNumber() == 1) {
+                    if(scenario.getFrom().getState() == 0 && scenario.getTo().getState() == 1){
                         behStart = behMap.get(scenario.getFrom().getNumber());
                         expStart = expMap.get(scenario.getTo().getNumber());
-                    } else {
+                    }
+                    else{
                         behStart = behMap.get(scenario.getTo().getNumber());
                         expStart = expMap.get(scenario.getFrom().getNumber());
                     }
-                    TestCircle behTc = new TestCircle(behMap.size(), behGraph);
-                    TestCircle expTc = new TestCircle(expMap.size(), expGraph);
+                    TestCircle behTc = new TestCircle(behMap.size(),behGraph);
+                    TestCircle expTc = new TestCircle(expMap.size(),expGraph);
                     behTc.findCycle(behStart);
                     expTc.findCycle(expStart);
-                    if (behTc.getHasCycle() && expTc.getHasCycle()) {
-                        for (int m = 0; m < behTc.getCircles().size(); m++) {
+                    if(behTc.getHasCycle() && expTc.getHasCycle()){
+                        for(int m = 0;m < behTc.getCircles().size();m++){
                             ArrayList<Integer> behCircle = behTc.getCircles().get(m);
-                            if (behMap.inverse().get(behCircle.get(0)) == behMap.inverse().get(behStart)) {
-                                System.out.println(behMap.inverse().get(behCircle.get(0)));
-                                System.out.println(behMap.inverse().get(behStart));
-                                for (int n = 0; n < expTc.getCircles().size(); n++) {
+                            int behLast = behMap.inverse().get(behCircle.get(behCircle.size() - 1));
+                            System.out.println("behlast:" + behLast);
+                            if(behMap.inverse().get(behCircle.get(0)) == behMap.inverse().get(behStart)){
+                                for(int n = 0;n < expTc.getCircles().size();n++){
+                                    boolean flag = false;
                                     ArrayList<Integer> expCircle = expTc.getCircles().get(n);
-                                    if (expMap.inverse().get(expCircle.get(0)) == expMap.inverse().get(expStart)) {
-                                        System.out.println(expMap.inverse().get(expCircle.get(0)));
-                                        System.out.println(expMap.inverse().get(expStart));
-
-                                        System.out.println(behMap.inverse().get(behCircle.get(behCircle.size() - 1)));
-                                        System.out.println(expMap.inverse().get(expCircle.get(expCircle.size() - 1)));
-                                        if (behMap.inverse().get(behCircle.get(behCircle.size() - 1)) == expMap.inverse().get(expCircle.get(expCircle.size() - 1))) {
-                                            if (coincidenceVisited.containsKey(behMap.inverse().get(behCircle.get(behCircle.size() - 1)))) {
-                                                coincidenceVisited.put(behMap.inverse().get(behCircle.get(behCircle.size() - 1)), true);
+                                    if(expMap.inverse().get(expCircle.get(0)) == expMap.inverse().get(expStart)){
+                                        int expLast = expMap.inverse().get(expCircle.get(expCircle.size() - 1));
+                                        System.out.println("expLast:" + expLast);
+                                        for(int k = 0;k < scenarioDiagram.getScenarios().size();k++){
+                                            Scenario tmpScenario = scenarioDiagram.getScenarios().get(k);
+                                            if(tmpScenario.getState() == 0 || tmpScenario.getState() == 2 ||tmpScenario.getState() == 4){
+                                                if(tmpScenario.getFrom().getNumber() == behLast && tmpScenario.getTo().getNumber() == expLast
+                                                        || tmpScenario.getTo().getNumber() == behLast && tmpScenario.getFrom().getNumber() == expLast){
+                                                    flag = true;
+                                                    System.out.println("11111111");
+                                                    break;
+                                                }
                                             }
-                                            break;
-                                        } else {
+                                        }
+                                        if(!flag){
                                             circle = circle + "Both Expect Interactions And Behaviour Interactions Have Circle";
-                                            circle = circle + ";" + i;
                                             circle = circle + "\"}";
+                                            System.out.println(circle);
                                             return circle;
                                         }
                                     }

@@ -46,7 +46,6 @@ public class Interaction implements Cloneable, Comparable<Interaction>, Serializ
         if(obj instanceof Interaction){
             Interaction temp = (Interaction)obj;
             return (this.state == temp.state && this.number == temp.number);
-            //return this.number == temp.number;
         }
         return false;
     }

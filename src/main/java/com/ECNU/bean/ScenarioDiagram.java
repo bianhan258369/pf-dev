@@ -293,6 +293,7 @@ public class ScenarioDiagram {
                 else if(temp.attributeValue("from_type").equals("Decision")) fState = 4;
                 else if(temp.attributeValue("from_type").equals("Merge")) fState = 5;
                 else if(temp.attributeValue("from_type").equals("Branch")) fState = 6;
+                if(fState != 0) continue;
                 String fName = "int";
                 Interaction from = new Interaction(fx, fy, fNumber, fState);
                 from.setName(fName);
@@ -329,7 +330,7 @@ public class ScenarioDiagram {
                                 else if(tempFrom.attributeValue("node_type").equals("Merge")) dState = 5;
                                 else if(tempFrom.attributeValue("node_type").equals("Branch")) dState = 6;
                                 Interaction dJiaohu = new Interaction(dx, dy, dNumber, dState);
-                                scenarios.add(new Scenario(new LinkedList(), from, dJiaohu, 1));
+                                if(dState == 0) scenarios.add(new Scenario(new LinkedList(), from, dJiaohu, 1));
                             }
                         }
                     }
@@ -351,7 +352,7 @@ public class ScenarioDiagram {
                         else if(tempTo.attributeValue("node_type").equals("Merge")) mState = 5;
                         else if(tempTo.attributeValue("node_type").equals("Branch")) mState = 6;
                         Interaction merge = new Interaction(mx, my, mNumber, mState);
-                        scenarios.add(new Scenario(new LinkedList(), from, merge, 1));
+                        if(mState == 0) scenarios.add(new Scenario(new LinkedList(), from, merge, 1));
                     }
                 }
             }
@@ -374,6 +375,7 @@ public class ScenarioDiagram {
                 else if(temp.attributeValue("from_type").equals("Decision")) fState = 4;
                 else if(temp.attributeValue("from_type").equals("Merge")) fState = 5;
                 else if(temp.attributeValue("from_type").equals("Branch")) fState = 6;
+                if(fState != 1) continue;
                 String fName = "int";
                 Interaction from = new Interaction(fx, fy, fNumber, fState);
                 from.setName(fName);
@@ -403,14 +405,14 @@ public class ScenarioDiagram {
                                 int dNumber = Integer.parseInt(tempFrom.attributeValue("node_no"));
                                 int dState = -1;
                                 if(tempFrom.attributeValue("node_type").equals("Start")) dState = 2;
-                                else if(tempFrom.attributeValue("node_type").equals("Start")) dState = 0;
+                                else if(tempFrom.attributeValue("node_type").equals("BehInt")) dState = 0;
                                 else if(tempFrom.attributeValue("node_type").equals("ExpInt")) dState = 1;
                                 else if(tempFrom.attributeValue("node_type").equals("End")) dState = 3;
                                 else if(tempFrom.attributeValue("node_type").equals("Decision")) dState = 4;
                                 else if(tempFrom.attributeValue("node_type").equals("Merge")) dState = 5;
                                 else if(tempFrom.attributeValue("node_type").equals("Branch")) dState = 6;
                                 Interaction dJiaohu = new Interaction(dx, dy, dNumber, dState);
-                                scenarios.add(new Scenario(new LinkedList(), from, dJiaohu, 3));
+                                if(dState == 1) scenarios.add(new Scenario(new LinkedList(), from, dJiaohu, 3));
                             }
                         }
                     }
@@ -425,14 +427,14 @@ public class ScenarioDiagram {
                         int mNumber = Integer.parseInt(tempTo.attributeValue("node_no"));
                         int mState = -1;
                         if(tempTo.attributeValue("node_type").equals("Start")) mState = 2;
-                        else if(tempTo.attributeValue("node_type").equals("Start")) mState = 0;
+                        else if(tempTo.attributeValue("node_type").equals("BehInt")) mState = 0;
                         else if(tempTo.attributeValue("node_type").equals("ExpInt")) mState = 1;
                         else if(tempTo.attributeValue("node_type").equals("End")) mState = 3;
                         else if(tempTo.attributeValue("node_type").equals("Decision")) mState = 4;
                         else if(tempTo.attributeValue("node_type").equals("Merge")) mState = 5;
                         else if(tempTo.attributeValue("node_type").equals("Branch")) mState = 6;
                         Interaction merge = new Interaction(mx, my, mNumber, mState);
-                        scenarios.add(new Scenario(new LinkedList(), from, merge, 3));
+                        if(mState == 1) scenarios.add(new Scenario(new LinkedList(), from, merge, 3));
                     }
                 }
             }
@@ -447,7 +449,7 @@ public class ScenarioDiagram {
                     int fNumber = Integer.parseInt(tempFrom.attributeValue("node_no"));
                     int fState = -1;
                     if(tempFrom.attributeValue("node_type").equals("Start")) fState = 2;
-                    else if(tempFrom.attributeValue("node_type").equals("Start")) fState = 0;
+                    else if(tempFrom.attributeValue("node_type").equals("BehInt")) fState = 0;
                     else if(tempFrom.attributeValue("node_type").equals("ExpInt")) fState = 1;
                     else if(tempFrom.attributeValue("node_type").equals("End")) fState = 3;
                     else if(tempFrom.attributeValue("node_type").equals("Decision")) fState = 4;
@@ -464,7 +466,7 @@ public class ScenarioDiagram {
                         int tNumber = Integer.parseInt(temoTo.attributeValue("node_no"));
                         int tState = -1;
                         if(temoTo.attributeValue("node_type").equals("Start")) tState = 2;
-                        else if(temoTo.attributeValue("node_type").equals("Start")) tState = 0;
+                        else if(temoTo.attributeValue("node_type").equals("BehInt")) tState = 0;
                         else if(temoTo.attributeValue("node_type").equals("ExpInt")) tState = 1;
                         else if(temoTo.attributeValue("node_type").equals("End")) tState = 3;
                         else if(temoTo.attributeValue("node_type").equals("Decision")) tState = 4;
@@ -479,56 +481,6 @@ public class ScenarioDiagram {
                     }
                 }
             }
-
-            /*
-            LinkedList<Integer> replaces = new LinkedList<>();
-            for(int i = 0;i < scenarios.size();i++){
-                Scenario tempChangjing = scenarios.get(i);
-                if(tempChangjing.getState() == 0){
-                    int index = 0;
-                    Interaction tempFrom = tempChangjing.getFrom();
-                    Interaction tempTo = tempChangjing.getTo();
-                    LinkedList<Interaction> precedent = new LinkedList<>();
-                    LinkedList<Interaction> successor = new LinkedList<>();
-                    getBehaviourPrecedent(tempFrom, precedent);
-                    getExpectedSuccessor(tempTo, successor);
-                    if(precedent.size() > 0) {
-                        while (index < precedent.size()) {
-                            getBehaviourPrecedent(precedent.get(index), precedent);
-                            index++;
-                        }
-                    }
-                    if(successor.size() > 0){
-                        index = 0;
-                        while(index < successor.size()){
-                            getExpectedSuccessor(successor.get(index), successor);
-                            index++;
-                        }
-                    }
-                    for(int j = 0;j < precedent.size();j++){
-                        Interaction tempPrecedent = precedent.get(j);
-                        for(int k = 0;k < successor.size();k++){
-                            Interaction tempSuccessor = successor.get(k);
-                            if(tempPrecedent.getNumber() == tempSuccessor.getNumber()){
-                                if(!replaces.contains(i)) replaces.add(i);
-                            }
-                        }
-                    }
-                }
-            }
-
-            for(int i = 0;i < replaces.size();i++){
-                Scenario replace = scenarios.get(replaces.get(i));
-                scenarios.remove(replace);
-                LinkedList<String> dians = replace.getTurning();
-                LinkedList newDians = new LinkedList();
-                newDians.add(dians.get(2));
-                newDians.add(dians.get(3));
-                newDians.add(dians.get(0));
-                newDians.add(dians.get(1));
-                scenarios.add(new Scenario(newDians, replace.getTo(), replace.getFrom(), replace.getState()));
-            }
-            */
         }catch (DocumentException e) {
             e.printStackTrace();
         }
