@@ -1,12 +1,16 @@
 package com.ECNU.bean;
 
+import com.ECNU.util.TestCircle;
 import lombok.Data;
+import org.apache.jena.ext.com.google.common.collect.BiMap;
+import org.apache.jena.ext.com.google.common.collect.HashBiMap;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -478,6 +482,98 @@ public class ScenarioDiagram {
                         to.setName(tName);
                         if (fState == 0) scenarios.add(new Scenario(new LinkedList(), from, to, 1));
                         if (fState == 1) scenarios.add(new Scenario(new LinkedList(), from, to, 3));
+                    }
+                }
+            }
+
+            //step1
+            BiMap<Integer, Integer> behMap = HashBiMap.create();
+            BiMap<Integer, Integer> expMap = HashBiMap.create();
+            for (int j = 0; j < getInteractions().size(); j++) {
+                Interaction interaction = getInteractions().get(j);
+                if (interaction.getState() == 0) behMap.put(interaction.getNumber(), behMap.size());
+                if (interaction.getState() == 1) expMap.put(interaction.getNumber(), expMap.size());
+            }
+            int behSize = behMap.size();
+            int expSize = expMap.size();
+            int[][] behGraph = new int[behSize][behSize];
+            int[][] expGraph = new int[expSize][expSize];
+
+
+            for (int m = 0; m < behSize; m++) {
+                for (int n = 0; n < behSize; n++) {
+                    behGraph[m][n] = 0;
+                }
+            }
+            for (int j = 0; j < getScenarios().size(); j++) {
+                Scenario scenario = getScenarios().get(j);
+                if (scenario.getFrom().getState() == 0 && scenario.getTo().getState() == 0) {
+                    behGraph[behMap.get(scenario.getFrom().getNumber())][behMap.get(scenario.getTo().getNumber())] = 1;
+                }
+            }
+            for (int m = 0; m < expSize; m++) {
+                for (int n = 0; n < expSize; n++) {
+                    expGraph[m][n] = 0;
+                }
+            }
+            for (int j = 0; j < getScenarios().size(); j++) {
+                Scenario scenario = getScenarios().get(j);
+                if (scenario.getFrom().getState() == 1 && scenario.getTo().getState() == 1) {
+                    expGraph[expMap.get(scenario.getFrom().getNumber())][expMap.get(scenario.getTo().getNumber())] = 1;
+                }
+            }
+
+
+            //step2
+            for(int j = 0;j < getScenarios().size();j++){
+                Scenario scenario =getScenarios().get(j);
+                if(scenario.getState() == 0 || scenario.getState() == 2 || scenario.getState() == 4){
+                    int behStart = -1;
+                    int expStart = -1;
+                    if(scenario.getFrom().getState() == 0 && scenario.getTo().getState() == 1){
+                        behStart = behMap.get(scenario.getFrom().getNumber());
+                        expStart = expMap.get(scenario.getTo().getNumber());
+                    }
+                    else{
+                        behStart = behMap.get(scenario.getTo().getNumber());
+                        expStart = expMap.get(scenario.getFrom().getNumber());
+                    }
+                    TestCircle behTc = new TestCircle(behMap.size(),behGraph);
+                    TestCircle expTc = new TestCircle(expMap.size(),expGraph);
+                    behTc.findCycle(behStart);
+                    expTc.findCycle(expStart);
+                    if(behTc.getHasCycle() && expTc.getHasCycle()){
+                        Outer:
+                        for(int m = 0;m < behTc.getCircles().size();m++){
+                            ArrayList<Integer> behCircle = behTc.getCircles().get(m);
+                            int behLast = behMap.inverse().get(behCircle.get(behCircle.size() - 1));
+                            if(behMap.inverse().get(behCircle.get(0)) == behMap.inverse().get(behStart)){
+                                for(int n = 0;n < expTc.getCircles().size();n++){
+                                    boolean flag = false;
+                                    ArrayList<Integer> expCircle = expTc.getCircles().get(n);
+                                    if(expMap.inverse().get(expCircle.get(0)) == expMap.inverse().get(expStart)){
+                                        int expLast = expMap.inverse().get(expCircle.get(expCircle.size() - 1));
+                                        for(int k = 0;k < getScenarios().size();k++){
+                                            Scenario tmpScenario = getScenarios().get(k);
+                                            if(tmpScenario.getState() == 0 || tmpScenario.getState() == 2 ||tmpScenario.getState() == 4){
+                                                if(tmpScenario.getFrom().getNumber() == behLast && tmpScenario.getTo().getNumber() == expLast
+                                                        || tmpScenario.getTo().getNumber() == behLast && tmpScenario.getFrom().getNumber() == expLast){
+                                                    flag = true;
+                                                    System.out.println("behLast:" + behLast);
+                                                    System.out.println("behStart:" + behMap.inverse().get(behStart));
+                                                    System.out.println("expLast:" + expLast);
+                                                    System.out.println("expStart:" + expMap.inverse().get(expStart));
+                                                    break Outer;
+                                                }
+                                            }
+                                            if(!flag){
+
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

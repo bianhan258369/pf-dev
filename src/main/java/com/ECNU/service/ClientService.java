@@ -2548,6 +2548,12 @@ public class ClientService implements Serializable{
                     TestCircle expTc = new TestCircle(expMap.size(),expGraph);
                     behTc.findCycle(behStart);
                     expTc.findCycle(expStart);
+                    if(behTc.getHasCycle() && !expTc.getHasCycle()){
+                        return false;
+                    }
+                    else if(!behTc.getHasCycle() && expTc.getHasCycle()){
+                        return false;
+                    }
                     if(behTc.getHasCycle() && expTc.getHasCycle()){
                         for(int m = 0;m < behTc.getCircles().size();m++){
                             ArrayList<Integer> behCircle = behTc.getCircles().get(m);
@@ -3173,6 +3179,18 @@ public class ClientService implements Serializable{
                     TestCircle expTc = new TestCircle(expMap.size(),expGraph);
                     behTc.findCycle(behStart);
                     expTc.findCycle(expStart);
+                    if(behTc.getHasCycle() && !expTc.getHasCycle()){
+                        circle = circle + "Behaviour Interactions Has Circle";
+                        circle = circle + "\"}";
+                        System.out.println(circle);
+                        return circle;
+                    }
+                    else if(!behTc.getHasCycle() && expTc.getHasCycle()){
+                        circle = circle + "Expect Interactions Has Circle";
+                        circle = circle + "\"}";
+                        System.out.println(circle);
+                        return circle;
+                    }
                     if(behTc.getHasCycle() && expTc.getHasCycle()){
                         for(int m = 0;m < behTc.getCircles().size();m++){
                             ArrayList<Integer> behCircle = behTc.getCircles().get(m);
