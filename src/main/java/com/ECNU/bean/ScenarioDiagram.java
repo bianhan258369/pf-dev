@@ -489,8 +489,8 @@ public class ScenarioDiagram {
             //step1
             BiMap<Integer, Integer> behMap = HashBiMap.create();
             BiMap<Integer, Integer> expMap = HashBiMap.create();
-            for (int j = 0; j < getInteractions().size(); j++) {
-                Interaction interaction = getInteractions().get(j);
+            for (int j = 0; j < interactions.size(); j++) {
+                Interaction interaction = interactions.get(j);
                 if (interaction.getState() == 0) behMap.put(interaction.getNumber(), behMap.size());
                 if (interaction.getState() == 1) expMap.put(interaction.getNumber(), expMap.size());
             }
@@ -505,8 +505,8 @@ public class ScenarioDiagram {
                     behGraph[m][n] = 0;
                 }
             }
-            for (int j = 0; j < getScenarios().size(); j++) {
-                Scenario scenario = getScenarios().get(j);
+            for (int j = 0; j < scenarios.size(); j++) {
+                Scenario scenario = scenarios.get(j);
                 if (scenario.getFrom().getState() == 0 && scenario.getTo().getState() == 0) {
                     behGraph[behMap.get(scenario.getFrom().getNumber())][behMap.get(scenario.getTo().getNumber())] = 1;
                 }
@@ -516,8 +516,8 @@ public class ScenarioDiagram {
                     expGraph[m][n] = 0;
                 }
             }
-            for (int j = 0; j < getScenarios().size(); j++) {
-                Scenario scenario = getScenarios().get(j);
+            for (int j = 0; j < scenarios.size(); j++) {
+                Scenario scenario = scenarios.get(j);
                 if (scenario.getFrom().getState() == 1 && scenario.getTo().getState() == 1) {
                     expGraph[expMap.get(scenario.getFrom().getNumber())][expMap.get(scenario.getTo().getNumber())] = 1;
                 }
@@ -525,9 +525,9 @@ public class ScenarioDiagram {
 
 
             //step2
-            for(int j = 0;j < getScenarios().size();j++){
-                Scenario scenario =getScenarios().get(j);
-                if(scenario.getState() == 0 || scenario.getState() == 2 || scenario.getState() == 4){
+            for(int j = 0;j < scenarios.size();j++){
+                Scenario scenario =scenarios.get(j);
+                if(scenario.getState() == 2){
                     int behStart = -1;
                     int expStart = -1;
                     if(scenario.getFrom().getState() == 0 && scenario.getTo().getState() == 1){
@@ -553,21 +553,26 @@ public class ScenarioDiagram {
                                     ArrayList<Integer> expCircle = expTc.getCircles().get(n);
                                     if(expMap.inverse().get(expCircle.get(0)) == expMap.inverse().get(expStart)){
                                         int expLast = expMap.inverse().get(expCircle.get(expCircle.size() - 1));
-                                        for(int k = 0;k < getScenarios().size();k++){
-                                            Scenario tmpScenario = getScenarios().get(k);
+                                        for(int k = 0;k < scenarios.size();k++){
+                                            Scenario tmpScenario = scenarios.get(k);
                                             if(tmpScenario.getState() == 0 || tmpScenario.getState() == 2 ||tmpScenario.getState() == 4){
-                                                if(tmpScenario.getFrom().getNumber() == behLast && tmpScenario.getTo().getNumber() == expLast
-                                                        || tmpScenario.getTo().getNumber() == behLast && tmpScenario.getFrom().getNumber() == expLast){
-                                                    flag = true;
-                                                    System.out.println("behLast:" + behLast);
-                                                    System.out.println("behStart:" + behMap.inverse().get(behStart));
-                                                    System.out.println("expLast:" + expLast);
-                                                    System.out.println("expStart:" + expMap.inverse().get(expStart));
-                                                    break Outer;
+                                                if((tmpScenario.getFrom().getNumber() == behLast && tmpScenario.getTo().getNumber() == expLast)
+                                                        || (tmpScenario.getTo().getNumber() == behLast && tmpScenario.getFrom().getNumber() == expLast)){
+//                                                    System.out.println(this.title);
+//                                                    System.out.println("behStart:" + behMap.inverse().get(behStart));
+//                                                    System.out.println("behLast:" + behLast);
+//                                                    System.out.println("expStart:" + expMap.inverse().get(expStart));
+//                                                    System.out.println("expLast:" + expLast);
+                                                    behStart = behMap.inverse().get(behStart);
+                                                    expStart = expMap.inverse().get(expStart);
+                                                    Scenario behDelete = new Scenario(new LinkedList<>(),new Interaction(behLast,0),new Interaction(behStart, 0),1);
+                                                    Scenario expDelete = new Scenario(new LinkedList<>(),new Interaction(expLast,1),new Interaction(expStart, 1),3);
+                                                    System.out.println(scenarios.contains(behDelete));
+                                                    System.out.println(scenarios.contains(expDelete));
+                                                    scenarios.remove(behDelete);
+                                                    scenarios.remove(expDelete);
+                                                    return;
                                                 }
-                                            }
-                                            if(!flag){
-
                                             }
                                         }
                                     }

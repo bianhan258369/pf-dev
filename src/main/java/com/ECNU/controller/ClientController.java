@@ -1,5 +1,6 @@
 package com.ECNU.controller;
 
+import com.ECNU.bean.VersionInfo;
 import com.ECNU.service.ClientService;
 import com.ECNU.util.Cors;
 import com.ECNU.util.GitUtil;
@@ -35,11 +36,99 @@ import java.util.*;
 public class ClientController extends Cors{
     @Autowired
     ClientService clientService;
-    private final String ROOTADDRESS = "E:\\JavaProject\\pfdev\\GitRepository\\";
+    private final String ROOTADDRESS = "E:\\JavaProject\\pf-dev\\GitRepository\\";
+    //private final String ROOTADDRESS = "/Project3/";
+
+    private List<VersionInfo> searchVersionInfo(String project, String branch){
+        List<VersionInfo> versions = new ArrayList<VersionInfo>();
+        List<String> vs = new ArrayList<String>();
+        System.out.println(project);
+        String command = "git reflog " + project + "/";
+        String dir = "G:\\PF\\Project";
+        File check = new File(dir);
+//  String newVersion = null;
+        String commitVersion = null;
+        try {
+            Process p1 = Runtime.getRuntime().exec(command,null,check);
+            BufferedReader br = new BufferedReader(new InputStreamReader(p1.getInputStream()));
+            String s;
+
+            while ((s = br.readLine()) != null) {
+                System.out.println(s + "--------------------");
+                if(s.indexOf("commit") != -1) {
+//           newVersion = s.substring(0, 7);
+                    commitVersion = s.split(" ")[0];
+                    vs.add(commitVersion);
+//           break;
+                }
+
+            }
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        for(String v : vs) {
+            String versionCommand = "git show " + v;
+            try {
+                Process p2 = Runtime.getRuntime().exec(versionCommand,null,check);
+                BufferedReader br = new BufferedReader(new InputStreamReader(p2.getInputStream()));
+                String str = null;
+                String time = null;
+                String versionId = null;
+
+                while ((str = br.readLine()) != null) {
+                    if(str.startsWith("commit")) {
+                        versionId = str.split(" ")[1].substring(0, 7);
+                    }
+                    if(str.startsWith("Date:")) {
+                        str = str.substring(8);
+                        time = str.substring(0, str.length() - 6);
+                        str = br.readLine();
+                        String value = br.readLine().split("0")[0];
+                        System.out.println(value);
+                        if(value.indexOf("upload") != -1) {
+                            if(value.indexOf("uploadproject") != -1) {
+                                continue;
+                            }else if(value.indexOf("uploadfile") != -1) {
+                                if(versions.size() > 0) {
+                                    if(versions.get(versions.size() - 1).getCommand().indexOf("uploadfile") != -1) {
+                                        continue;
+                                    }
+                                }
+                            }else {
+                                continue;
+                            }
+                        }
+                        VersionInfo version = new VersionInfo();
+                        version.setVersionId(versionId);
+                        version.setTime(time);
+                        version.setCommand(value);
+                        versions.add(version);
+                    }
+                }
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        return versions;
+    }
+
+    private List<String> searchVersion(String project, String branch) {
+        // TODO Auto-generated method stub
+        List<String> projectVersions = new ArrayList<String>();
+        List<VersionInfo> versions = searchVersionInfo(project, branch);
+        if(versions != null) {
+            for(VersionInfo version: versions) {
+                projectVersions.add(version.getTime());
+            }
+        }
+        return projectVersions;
+    }
 
     @CrossOrigin
     @RequestMapping("/upload")
-    public String upload(@RequestParam("uploadedFiles") MultipartFile files) throws Exception {
+    public String upload(@RequestParam("uploadedFiles") MultipartFile files,String folderName) throws Exception {
         String branch = "test";
         File file = new File(ROOTADDRESS);
         if(!file.exists()){
@@ -56,7 +145,9 @@ public class ClientController extends Cors{
         try {
             GitUtil.gitCheckout(branch,ROOTADDRESS);
             GitUtil.currentBranch(ROOTADDRESS);
-            BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(ROOTADDRESS + files.getOriginalFilename()));
+            File folder = new File(ROOTADDRESS + folderName);
+            if(!folder.exists()) folder.mkdir();
+            BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(ROOTADDRESS + folderName + "/" + files.getOriginalFilename()));
             outputStream.write(files.getBytes());
             outputStream.flush();
             outputStream.close();
@@ -69,7 +160,7 @@ public class ClientController extends Cors{
 
     @CrossOrigin
     @GetMapping("/downloadMyCCSLFile")
-    public void download() throws Exception {
+    public void download(String path) throws Exception {
         ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
         HttpServletResponse response = servletRequestAttributes.getResponse();
         String branch = "test";
@@ -91,7 +182,7 @@ public class ClientController extends Cors{
         } catch (Exception e){
             e.printStackTrace();
         }
-        String filePath = ROOTADDRESS + "constraints.myccsl";
+        String filePath = path + "/constraints.myccsl";
         File file = new File(filePath);
         if(file.exists()){
             response.setContentType("application/force-download");// 设置强制下载不打开
@@ -135,7 +226,8 @@ public class ClientController extends Cors{
     public void downloadMyCCSL() throws IOException {
         ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
         HttpServletResponse response = servletRequestAttributes.getResponse();
-        String filePath = "MyCCSL/MyCCSL.zip";
+        //String filePath = "MyCCSL/MyCCSL.zip";
+        String filePath = "/root/MyCCSL/MyCCSL.zip";
         File file = new File(filePath);
         if(file.exists()){
             response.setContentType("application/force-download");// 设置强制下载不打开
@@ -212,16 +304,14 @@ public class ClientController extends Cors{
                 XMLWriter writer = new XMLWriter(out, format);
                 writer.write(document);
                 writer.close();
-                System.out.print("生成XML文件成功");
             } catch (IOException e){
-                System.out.print("生成XML文件失败");
                 e.printStackTrace();
             }
             bufferedWriter.close();
 
             //修改txt中的addedConstraint
             String temp = "";
-            File txtFile = new File(ROOTADDRESS + "constraints.txt");
+            File txtFile = new File(path + "/constraints.txt");
             FileInputStream fis = new FileInputStream(txtFile);
             InputStreamReader isr = new InputStreamReader(fis);
             BufferedReader br = new BufferedReader(isr);
@@ -454,6 +544,26 @@ public class ClientController extends Cors{
             String branch = it.next().toString();
             branch = branch.substring(branch.lastIndexOf("/") + 1);
             result.accumulate("branchlist",branch);
+        }
+        return result;
+    }
+
+    @CrossOrigin
+    @GetMapping("/showFileList")
+    public Object showFileList(String branch) throws IOException, GitAPIException {
+        JSONObject result = new JSONObject();
+        try{
+            GitUtil.gitCheckout(branch,ROOTADDRESS);
+            File root = new File(ROOTADDRESS);
+            File[] folders = root.listFiles();
+            for(int i = 0;i < folders.length;i++){
+                if(folders[i].isDirectory()){
+                    System.out.println(folders[i].getName());
+                    result.accumulate("folderlist",folders[i].getName());
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return result;
     }

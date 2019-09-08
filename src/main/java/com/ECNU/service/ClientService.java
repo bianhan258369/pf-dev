@@ -565,7 +565,6 @@ public class ClientService implements Serializable{
                     rect.setText(temp.attributeValue("machine_name"));
                     rect.setShortName(temp.attributeValue("machine_shortname"));
                     rect.setState(2);
-                    System.out.println(rect.getText());
                     diagram.components.add(rect);
                 }
 
@@ -1601,6 +1600,7 @@ public class ClientService implements Serializable{
             ProblemDiagram diagram = new ProblemDiagram("SubProblemDiagram" + count);
             diagram.components = new LinkedList();
             Element spd = (Element) it.next();
+            System.out.println(file.getPath());
             String spdPath = ProblemDiagram.getFilePath(file.getPath()) + spd.getText()+".xml";
             Document subProDiagram = saxReader.read(spdPath);
             Element root = subProDiagram.getRootElement();
@@ -2307,7 +2307,6 @@ public class ClientService implements Serializable{
                     tempPhenomenon = (Element)j.next();
                     String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
                     String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
-                    System.out.println("1" + phenomenonState);
                     String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
                     String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
                     Rect phenomenonFromRect = null;
@@ -2356,11 +2355,9 @@ public class ClientService implements Serializable{
                 line.setName(name);
                 Element tempPhenomenon;
                 for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
-                    System.out.println(i);
                     tempPhenomenon = (Element)j.next();
                     String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
                     String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
-                    System.out.println("2" + phenomenonState);
                     String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
                     String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
                     int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_requirement"));
@@ -2416,7 +2413,6 @@ public class ClientService implements Serializable{
                     tempPhenomenon = (Element)j.next();
                     String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
                     String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
-                    System.out.println("3" + phenomenonState);
                     String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
                     String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
                     int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_requirement"));

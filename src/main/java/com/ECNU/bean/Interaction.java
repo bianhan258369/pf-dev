@@ -15,6 +15,11 @@ public class Interaction implements Cloneable, Comparable<Interaction>, Serializ
     private int state;
     private String name = "int";
 
+    public Interaction(int number, int state){
+        this.number = number;
+        this.state = state;
+    }
+
     public Interaction(int middleX,int middleY, int number,int state){
         this.number = number;
         this.state = state;

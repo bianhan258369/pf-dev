@@ -60,7 +60,7 @@ public class ProblemDiagram implements Serializable {
                 Rect rect = new Rect(x1 + x2 / 2, y1 + y2 / 2);
                 rect.setText(temp.attributeValue("machine_name"));
                 rect.setShortName(temp.attributeValue("machine_shortname"));
-                rect.setState(Integer.parseInt(temp.attributeValue("machine_state")));
+                rect.setState(2);
                 this.components.add(rect);
             }
 
@@ -290,6 +290,7 @@ public class ProblemDiagram implements Serializable {
 
     public static String getFilePath(String path){
         int index = path.lastIndexOf('\\');
+        //int index = path.lastIndexOf('/');
         String result = path.substring(0,index+1);
         return result;
     }
