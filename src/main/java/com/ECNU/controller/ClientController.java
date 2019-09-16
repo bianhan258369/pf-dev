@@ -5,6 +5,7 @@ import com.ECNU.service.ClientService;
 import com.ECNU.util.Cors;
 import com.ECNU.util.GitUtil;
 import com.ECNU.util.IPUtil;
+import com.github.jsonldjava.utils.Obj;
 import net.sf.json.JSONObject;
 import org.apache.tomcat.util.http.fileupload.FileItem;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
@@ -36,15 +37,15 @@ import java.util.*;
 public class ClientController extends Cors{
     @Autowired
     ClientService clientService;
-    private final String ROOTADDRESS = "E:\\JavaProject\\pf-dev\\GitRepository\\";
-    //private final String ROOTADDRESS = "/Project3/";
+    //private final String ROOTADDRESS = "E:/JavaProject/pf-dev/GitRepository/";
+    private final String ROOTADDRESS = "/root/PF/Project/";
 
     private List<VersionInfo> searchVersionInfo(String project, String branch){
         List<VersionInfo> versions = new ArrayList<VersionInfo>();
         List<String> vs = new ArrayList<String>();
         System.out.println(project);
         String command = "git reflog " + project + "/";
-        String dir = "G:\\PF\\Project";
+        String dir = ROOTADDRESS;
         File check = new File(dir);
 //  String newVersion = null;
         String commitVersion = null;
@@ -146,12 +147,15 @@ public class ClientController extends Cors{
             GitUtil.gitCheckout(branch,ROOTADDRESS);
             GitUtil.currentBranch(ROOTADDRESS);
             File folder = new File(ROOTADDRESS + folderName);
-            if(!folder.exists()) folder.mkdir();
+            if(!folder.exists()){
+                folder.mkdir();
+                GitUtil.RecordUploadProjAt("uploadproject",ROOTADDRESS, ".");
+            }
             BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(ROOTADDRESS + folderName + "/" + files.getOriginalFilename()));
             outputStream.write(files.getBytes());
             outputStream.flush();
             outputStream.close();
-            GitUtil.RecordUploadProjAt("upload",ROOTADDRESS, ".");
+            GitUtil.RecordUploadProjAt("uploadfile",ROOTADDRESS, ".");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -227,7 +231,7 @@ public class ClientController extends Cors{
         ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
         HttpServletResponse response = servletRequestAttributes.getResponse();
         //String filePath = "MyCCSL/MyCCSL.zip";
-        String filePath = "/root/MyCCSL/MyCCSL.zip";
+        String filePath = "/root/PF/tool/MyCCSL.zip";
         File file = new File(filePath);
         if(file.exists()){
             response.setContentType("application/force-download");// 设置强制下载不打开
@@ -535,6 +539,14 @@ public class ClientController extends Cors{
     }
 
     @CrossOrigin
+    @GetMapping("/getRootAddress")
+    public Object getRootAddress() throws Exception{
+        JSONObject result = new JSONObject();
+        result.put("rootaddress",ROOTADDRESS);
+        return result;
+    }
+
+    @CrossOrigin
     @GetMapping("/showBranchList")
     public Object showBranchList() throws IOException, GitAPIException {
         JSONObject result = new JSONObject();
@@ -549,8 +561,8 @@ public class ClientController extends Cors{
     }
 
     @CrossOrigin
-    @GetMapping("/showFileList")
-    public Object showFileList(String branch) throws IOException, GitAPIException {
+    @GetMapping("/showFolderList")
+    public Object showFolderList(String branch) throws IOException, GitAPIException {
         JSONObject result = new JSONObject();
         try{
             GitUtil.gitCheckout(branch,ROOTADDRESS);
@@ -558,9 +570,25 @@ public class ClientController extends Cors{
             File[] folders = root.listFiles();
             for(int i = 0;i < folders.length;i++){
                 if(folders[i].isDirectory()){
-                    System.out.println(folders[i].getName());
-                    result.accumulate("folderlist",folders[i].getName());
+                    if(!folders[i].getName().equals(".git")) result.accumulate("folderlist",folders[i].getName());
                 }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    @CrossOrigin
+    @GetMapping("/showVersionList")
+    public Object showVersionList(String branch, String folderName) throws IOException, GitAPIException {
+        JSONObject result = new JSONObject();
+        try{
+            GitUtil.gitCheckout(branch,ROOTADDRESS);
+            List<String> versions = searchVersion(folderName, branch);
+            System.out.println(versions.size());
+            for(int i = 0;i < versions.size();i++){
+                result.accumulate("versionlist",versions.get(i));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -575,5 +603,66 @@ public class ClientController extends Cors{
         GitUtil.gitCheckout(branch, ROOTADDRESS);
         result.put("state","Success");
         return result;
+    }
+
+
+    @CrossOrigin
+    @GetMapping("/gitRollBack")
+    public Object gitRollBack(String branch, String folderName, String version) throws Exception{
+        JSONObject result = new JSONObject();
+        List<VersionInfo> versions = searchVersionInfo(folderName, branch);
+        try {
+            GitUtil.gitCheckout(branch, ROOTADDRESS);
+            GitUtil.rollback(branch, ROOTADDRESS, folderName, version, versions);
+            result.put("state","Success");
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    @CrossOrigin
+    @GetMapping("/downloadCaseTool")
+    public void downloadProgression() throws IOException {
+        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+        HttpServletResponse response = servletRequestAttributes.getResponse();
+        //String filePath = "MyCCSL/MyCCSL.zip";
+        String filePath = "/root/PF/tool/CaseTool.zip";
+        File file = new File(filePath);
+        if(file.exists()){
+            response.setContentType("application/force-download");// 设置强制下载不打开
+            response.setHeader("Content-Disposition", "attachment;fileName="+ new String(filePath.getBytes("GB2312"),"ISO-8859-1"));
+            byte[] buffer = new byte[1024];
+            FileInputStream fis = null;
+            BufferedInputStream bis = null;
+            try {
+                fis = new FileInputStream(file);
+                bis = new BufferedInputStream(fis);
+                OutputStream os = response.getOutputStream();
+                int i = bis.read(buffer);
+                while (i != -1) {
+                    os.write(buffer, 0, i);
+                    i = bis.read(buffer);
+                }
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+            finally {
+                if (bis != null) {
+                    try {
+                        bis.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (fis != null) {
+                    try {
+                        fis.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
     }
 }
