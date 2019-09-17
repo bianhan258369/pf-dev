@@ -26,7 +26,7 @@ public class Z3Util {
         s = readFile(intputPath);
     }
 
-    public void exportSMT(){
+    public void exportSMT(String path){
         String str;
         String[] ss = s.split("\n");
         int strb;
@@ -181,7 +181,7 @@ public class Z3Util {
                 }
             }
         }
-        writFile("./constraints.smt",res);
+        writFile( path + "/constraints.smt",res);
     }
 
     public String trace(){
@@ -600,7 +600,7 @@ public class Z3Util {
 
 
     public static void main(String[] args){
-        Z3Util test = new Z3Util(10, "./constraints.myccsl",10,0,false,false);
-        test.exportSMT();
+//        Z3Util test = new Z3Util(10, "./constraints.myccsl",10,0,false,false);
+//        test.exportSMT();
     }
 }
