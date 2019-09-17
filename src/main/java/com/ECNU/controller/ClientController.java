@@ -5,8 +5,12 @@ import com.ECNU.service.ClientService;
 import com.ECNU.util.Cors;
 import com.ECNU.util.GitUtil;
 import com.ECNU.util.IPUtil;
+import com.ECNU.util.Z3Util;
 import com.github.jsonldjava.utils.Obj;
 import net.sf.json.JSONObject;
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.tomcat.util.http.fileupload.FileItem;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.apache.tomcat.util.http.fileupload.disk.DiskFileItemFactory;
@@ -37,8 +41,8 @@ import java.util.*;
 public class ClientController extends Cors{
     @Autowired
     ClientService clientService;
-    //private final String ROOTADDRESS = "E:/JavaProject/pf-dev/GitRepository/";
-    private final String ROOTADDRESS = "/root/PF/Project/";
+    private final String ROOTADDRESS = "E:/JavaProject/pf-dev/GitRepository/";
+    //private final String ROOTADDRESS = "/root/PF/Project/";
 
     private List<VersionInfo> searchVersionInfo(String project, String branch){
         List<VersionInfo> versions = new ArrayList<VersionInfo>();
@@ -536,6 +540,42 @@ public class ClientController extends Cors{
 //        ip = ip.replace(':','-');
 //        String path = "asset/" + ip + "/" + "addedConstraints.xml";
         return clientService.loadConstraintsXML(path + "/addedConstraints.xml");
+    }
+
+    @CrossOrigin
+    @GetMapping("/z3Check")
+    public Object z3Check(String path, int timeout, int b, int pb, boolean dl, boolean p) throws Exception{
+        JSONObject resultJson = new JSONObject();
+        Z3Util z3Util = new Z3Util(timeout, path + "/constraints.myccsl",b, pb, dl, p);
+        z3Util.exportSMT();
+        String command = "z3 constraints.smt";
+        String result = "";
+        try {
+            Process process = Runtime.getRuntime().exec(command);
+            BufferedInputStream bis = new BufferedInputStream(
+                    process.getInputStream());
+            BufferedReader br = new BufferedReader(new InputStreamReader(bis));
+            String line;
+            while ((line = br.readLine()) != null) {
+                result = result + line + " ";
+            }
+            process.waitFor();
+            if (process.exitValue() != 0) {
+                System.out.println("error!");
+            }
+
+            bis.close();
+            br.close();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        result = result.substring(0,result.indexOf(" "));
+        resultJson.put("result",result);
+        return resultJson;
     }
 
     @CrossOrigin

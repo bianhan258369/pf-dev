@@ -600,7 +600,7 @@ public class Z3Util {
 
 
     public static void main(String[] args){
-        Z3Util test = new Z3Util(1000, "./constraints.myccsl",10,0,false,false);
+        Z3Util test = new Z3Util(10, "./constraints.myccsl",10,0,false,false);
         test.exportSMT();
     }
 }
