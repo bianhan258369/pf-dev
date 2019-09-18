@@ -8,9 +8,6 @@ import com.ECNU.util.IPUtil;
 import com.ECNU.util.Z3Util;
 import com.github.jsonldjava.utils.Obj;
 import net.sf.json.JSONObject;
-import org.apache.commons.exec.CommandLine;
-import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.tomcat.util.http.fileupload.FileItem;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.apache.tomcat.util.http.fileupload.disk.DiskFileItemFactory;
@@ -547,7 +544,7 @@ public class ClientController extends Cors{
     public Object z3Check(String path, int timeout, int b, int pb, boolean dl, boolean p) throws Exception{
         JSONObject resultJson = new JSONObject();
         Z3Util z3Util = new Z3Util(timeout, path + "/constraints.myccsl",b, pb, dl, p);
-        z3Util.exportSMT();
+        z3Util.exportSMT(path);
         String command = "z3 constraints.smt";
         String result = "";
         try {

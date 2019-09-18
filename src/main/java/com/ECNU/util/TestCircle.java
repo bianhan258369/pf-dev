@@ -69,46 +69,26 @@ public class TestCircle {
         List<Interaction> interactions = new LinkedList<>();
         List<Scenario> scenarios = new LinkedList<>();
 
-        interactions.add(new Interaction(300,400,16,1));
-        interactions.add(new Interaction(100,200,1,0));
-        interactions.add(new Interaction(300,200,15,1));
-        interactions.add(new Interaction(300,300,14,1));
-        interactions.add(new Interaction(100,300,14,0));
-        interactions.add(new Interaction(100,400,2,0));
-        interactions.add(new Interaction(300,100,13,1));
-        interactions.add(new Interaction(100,100,13,0));
+        interactions.add(new Interaction(100,100,4,0));
+        interactions.add(new Interaction(100,200,3,0));
+        interactions.add(new Interaction(300,100,8,1));
+        interactions.add(new Interaction(300,200,7,1));
 
-        scenarios.add(new Scenario(new LinkedList<String>(),new Interaction(100,200,1,0),
-                new Interaction(100,300,14,0),1));
-        scenarios.add(new Scenario(new LinkedList<String>(),new Interaction(100,300,14,0),
-                new Interaction(100,400,2,0),1));
+        scenarios.add(new Scenario(new LinkedList<String>(),new Interaction(100,100,4,0),
+                new Interaction(100,200,3,0),1));
+        scenarios.add(new Scenario(new LinkedList<String>(),new Interaction(100,200,3,0),
+                new Interaction(100,100,4,0),1));
 
 
-        scenarios.add(new Scenario(new LinkedList<String>(),new Interaction(100,300,14,0),
-                new Interaction(300,300,14,1),2));
-        scenarios.add(new Scenario(new LinkedList<String>(),new Interaction(100,400,2,0),
-                new Interaction(300,400,16,1),0));
+        scenarios.add(new Scenario(new LinkedList<String>(),new Interaction(300,100,8,1),
+                new Interaction(300,200,7,1),3));
+        scenarios.add(new Scenario(new LinkedList<String>(),new Interaction(300,200,7,1),
+                new Interaction(300,100,8,1),3));
 
-        scenarios.add(new Scenario(new LinkedList<String>(),new Interaction(300,100,13,1),
-                new Interaction(300,200,15,1),3));
-        scenarios.add(new Scenario(new LinkedList<String>(),new Interaction(300,400,16,1),
-                new Interaction(300,100,13,1),3));
-
-        scenarios.add(new Scenario(new LinkedList<String>(),new Interaction(100,100,13,0),
-                new Interaction(300,100,13,1),2));
-        scenarios.add(new Scenario(new LinkedList<String>(),new Interaction(100,200,1,0),
-                new Interaction(300,200,15,1),0));
-
-        scenarios.add(new Scenario(new LinkedList<String>(),new Interaction(100,400,2,0),
-                new Interaction(100,100,13,0),1));
-        scenarios.add(new Scenario(new LinkedList<String>(),new Interaction(100,100,13,0),
-                new Interaction(100,200,1,0),1));
-
-
-        scenarios.add(new Scenario(new LinkedList<String>(),new Interaction(300,200,15,1),
-                new Interaction(300,300,14,1),3));
-        scenarios.add(new Scenario(new LinkedList<String>(),new Interaction(300,300,14,1),
-                new Interaction(300,400,16,1),3));
+        scenarios.add(new Scenario(new LinkedList<String>(),new Interaction(100,100,4,0),
+                new Interaction(300,100,8,1),0));
+        scenarios.add(new Scenario(new LinkedList<String>(),new Interaction(100,200,3,0),
+                new Interaction(300,200,7,1),0));
         for(int i = 0;i < interactions.size();i++) scenarioDiagram.addJiaohu(interactions.get(i));
         for(int i = 0;i < scenarios.size();i++) scenarioDiagram.addChangjing(scenarios.get(i));
 
@@ -154,7 +134,7 @@ public class TestCircle {
         //step2
         for(int j = 0;j < scenarioDiagram.getScenarios().size();j++){
             Scenario scenario = scenarioDiagram.getScenarios().get(j);
-            if(scenario.getState() == 2){
+            if(scenario.getState() == 0 || scenario.getState() == 2 || scenario.getState() == 4){
                 int behStart = -1;
                 int expStart = -1;
                 if(scenario.getFrom().getState() == 0 && scenario.getTo().getState() == 1){

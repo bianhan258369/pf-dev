@@ -10,9 +10,7 @@ import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.*;
 
 @Data
 public class ScenarioDiagram {
@@ -485,6 +483,12 @@ public class ScenarioDiagram {
                     }
                 }
             }
+            Collections.sort(scenarios, new Comparator<Scenario>() {
+                @Override
+                public int compare(Scenario o1, Scenario o2) {
+                    return o1.getFrom().getY1() - o2.getFrom().getY1();
+                }
+            });
 
             //step1
             BiMap<Integer, Integer> behMap = HashBiMap.create();
@@ -523,11 +527,10 @@ public class ScenarioDiagram {
                 }
             }
 
-
             //step2
             for(int j = 0;j < scenarios.size();j++){
                 Scenario scenario =scenarios.get(j);
-                if(scenario.getState() == 2){
+                if(scenario.getState() == 0 || scenario.getState() == 2 || scenario.getState() == 4){
                     int behStart = -1;
                     int expStart = -1;
                     if(scenario.getFrom().getState() == 0 && scenario.getTo().getState() == 1){
