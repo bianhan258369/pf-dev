@@ -290,12 +290,14 @@ public class ClientController extends Cors{
             Element root=document.addElement("AddedConstraints");
             OutputFormat format = OutputFormat.createPrettyPrint();
             format.setEncoding("utf-8");
-            for(int i = 0;i < constraints.split(",").length;i++){
-                bufferedWriter.write(constraints.split(",")[i]);
+            System.out.println(constraints);
+            for(int i = 0;i < constraints.split("/").length;i++){
+                bufferedWriter.write(constraints.split("/")[i]);
                 bufferedWriter.newLine();
             }
-            for(int i = 0;i < addedConstraints.split(",").length;i++){
-                String addedConstraint = addedConstraints.split(",")[i];
+            System.out.println(addedConstraints);
+            for(int i = 0;i < addedConstraints.split("//").length;i++){
+                String addedConstraint = addedConstraints.split("//")[i];
                 if(addedConstraint.contains("TD")){
                     String oldIndex = addedConstraint.substring(2, addedConstraint.indexOf(":"));
                     String newIndex = ((Integer)(Integer.parseInt(addedConstraint.substring(2, addedConstraint.indexOf(":"))) - 1)).toString();
@@ -327,10 +329,23 @@ public class ClientController extends Cors{
                     buf = buf.append(System.getProperty("line.separator"));
                 }
                 else {
+                    System.out.println(temp);
+                    String extra = "";
                     String fromNum = temp.substring(3 + temp.indexOf("int"),temp.indexOf("state"));
                     String toNum = temp.substring(3 + temp.lastIndexOf("int"),temp.lastIndexOf("state"));
-                    String cons = temp.substring(temp.indexOf(" ") + 1, temp.lastIndexOf(" "));
-                    buf = buf.append("int" + fromNum + ' ' + cons + ' ' + "int" + toNum + ';');
+                    String cons = temp.split(" ")[1];
+                    if(cons.equals("BoundedDiff") || cons.equals("Union")
+                            || cons.equals("Inf") || cons.equals("Sup")){
+                        extra = temp.split(" ")[3];
+                        extra = extra.substring(0, extra.length() - 1);
+                    }
+                    if(cons.equals("BoundedDiff")){
+                        buf = buf.append("int" + fromNum + ' ' + cons + " [" + extra + "] int" + toNum + ";");
+                    }
+                    else if(cons.equals("Union") || cons.equals("Inf") || cons.equals("Sup")){
+                        buf = buf.append(extra + " = int" + fromNum + ' ' + cons + " int" + toNum + ";");
+                    }
+                    else buf = buf.append("int" + fromNum + ' ' + cons + ' ' + "int" + toNum + ';');
                     buf = buf.append(System.getProperty("line.separator"));
                 }
             }
