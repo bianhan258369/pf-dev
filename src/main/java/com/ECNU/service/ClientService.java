@@ -3329,12 +3329,20 @@ public class ClientService implements Serializable{
                 String from = constraint.substring(constraint.indexOf(":") + 1).split(" ")[0];
                 String cons = constraint.substring(constraint.indexOf(":")).split(" ")[1];
                 String to = constraint.substring(constraint.indexOf(":")).split(" ")[2];
+                String extra = "";
+
                 result = result + constraint.substring(2,constraint.indexOf(":")) + ':';
                 result = result + from.substring(3,from.indexOf("state")) + ",";
                 result = result + from.substring(from.indexOf("state") + 5) + " ";
                 result = result + cons + " ";
                 result = result + to.substring(3,to.indexOf("state")) + ",";
-                result = result + to.substring(to.indexOf("state") + 5) + "/";
+                result = result + to.substring(to.indexOf("state") + 5);
+                if(cons.equals("Union") || cons.equals("Inf")
+                        || cons.equals("Sup") || cons.equals("BoundedDiff")){
+                    extra = constraint.split(" ")[3];
+                    result = result + " " + extra + "/";
+                }
+                else result = result + "/";
             }
         }
         result = result + "\"}";

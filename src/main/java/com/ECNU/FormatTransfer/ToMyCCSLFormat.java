@@ -33,12 +33,23 @@ public class ToMyCCSLFormat extends ToCommonFormat{
         String kw = "";
         for(Iterator<String> iter = clockConstrans.iterator(); iter.hasNext();) {
             String temp = iter.next();
+            System.out.println(temp);
             splitList = temp.split("\\s+");
+            for(int i = 0;i < splitList.length;i++) System.out.println(splitList[i]);
             kw = judgeKw(splitList);
             if (kw.equals("Union")) {
-                fw.write(splitList[3].substring(1,splitList[3].length()-1) + "=");
-                fw.write(splitList[0] + "+" + splitList[2] + lineSeparator);
-            }else if (kw.equals("Boundeddiff")) {
+                fw.write(splitList[0] + "=");
+                fw.write(splitList[2] + "+" + splitList[4] + lineSeparator);
+            }
+            else if(kw.equals("Inf")){
+                fw.write(splitList[0] + "=");
+                fw.write(splitList[2] + "∧" + splitList[4] + lineSeparator);
+            }
+            else if(kw.equals("Sup")){
+                fw.write(splitList[0] + "=");
+                fw.write(splitList[2] + "∨" + splitList[4] + lineSeparator);
+            }
+            else if (kw.equals("BoundedDiff")) {
                 String tmpStr = splitList[2].substring(1,splitList[2].length()-1);
                 String downBound = "0";
                 String upBound = "";
