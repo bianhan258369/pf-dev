@@ -9,6 +9,7 @@ import com.ECNU.util.TestCircle;
 import com.sun.corba.se.spi.ior.ObjectKey;
 import javafx.beans.binding.ObjectExpression;
 import lombok.Data;
+import net.sf.json.JSONObject;
 import org.apache.jena.ext.com.google.common.collect.BiMap;
 import org.apache.jena.ext.com.google.common.collect.HashBiMap;
 import org.apache.jena.ontology.*;
@@ -3316,6 +3317,8 @@ public class ClientService implements Serializable{
 
     //3:20,0 StrictPre 21,0/4:
     public String loadConstraintsXML(String path) throws DocumentException {
+        JSONObject constraints = new JSONObject();
+        JSONObject newClockConstraints = new JSONObject();
         String result = "{\"constraints\":\"";
         File file = new File(path);
         SAXReader saxReader = new SAXReader();
@@ -3323,7 +3326,7 @@ public class ClientService implements Serializable{
         Element rootElement = project.getRootElement();
         for(Iterator it = rootElement.elementIterator("constraint");it.hasNext();){
             Element element = (Element) it.next();
-            //TD1:int13state0 StrictPre int14state0
+            //TD0:int1state0 Union int5state1 newclock
             String constraint = element.getText();
             if(constraint.contains("TD")){
                 String from = constraint.substring(constraint.indexOf(":") + 1).split(" ")[0];
@@ -3332,11 +3335,17 @@ public class ClientService implements Serializable{
                 String extra = "";
 
                 result = result + constraint.substring(2,constraint.indexOf(":")) + ':';
-                result = result + from.substring(3,from.indexOf("state")) + ",";
-                result = result + from.substring(from.indexOf("state") + 5) + " ";
+                if(from.contains("int") && from.contains("state")){
+                    result = result + from.substring(3,from.indexOf("state")) + ",";
+                    result = result + from.substring(from.indexOf("state") + 5) + " ";
+                }
+                else result = result + from + " ";
                 result = result + cons + " ";
-                result = result + to.substring(3,to.indexOf("state")) + ",";
-                result = result + to.substring(to.indexOf("state") + 5);
+                if(to.contains("int") && to.contains("state")){
+                    result = result + to.substring(3,to.indexOf("state")) + ",";
+                    result = result + to.substring(to.indexOf("state") + 5);
+                }
+                else result = result + to;
                 if(cons.equals("Union") || cons.equals("Inf")
                         || cons.equals("Sup") || cons.equals("BoundedDiff")){
                     extra = constraint.split(" ")[3];
@@ -3346,6 +3355,7 @@ public class ClientService implements Serializable{
             }
         }
         result = result + "\"}";
+        System.out.println(result);
         return result;
     }
 

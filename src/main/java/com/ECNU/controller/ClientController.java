@@ -188,6 +188,7 @@ public class ClientController extends Cors{
             e.printStackTrace();
         }
         String filePath = path + "/constraints.myccsl";
+        System.out.println(filePath);
         File file = new File(filePath);
         if(file.exists()){
             response.setContentType("application/force-download");// 设置强制下载不打开
@@ -331,21 +332,28 @@ public class ClientController extends Cors{
                 else {
                     System.out.println(temp);
                     String extra = "";
-                    String fromNum = temp.substring(3 + temp.indexOf("int"),temp.indexOf("state"));
-                    String toNum = temp.substring(3 + temp.lastIndexOf("int"),temp.lastIndexOf("state"));
-                    String cons = temp.split(" ")[1];
+                    String[] constraint = temp.substring(temp.indexOf(":") + 1).split(" ");
+                    String from = "";
+                    String to = "";
+                    if(constraint[0].contains("int") && constraint[0].contains("state"))from = "int" + temp.substring(3 + temp.indexOf("int"),temp.indexOf("state"));
+                    else from = constraint[0];
+                    if(constraint[2].contains("int") && constraint[2].contains("state"))to = "int" + temp.substring(3 + temp.lastIndexOf("int"),temp.lastIndexOf("state"));
+                    else to = constraint[2];
+//                    String fromNum = temp.substring(3 + temp.indexOf("int"),temp.indexOf("state"));
+//                    String toNum = temp.substring(3 + temp.lastIndexOf("int"),temp.lastIndexOf("state"));
+                    String cons = constraint[1];
                     if(cons.equals("BoundedDiff") || cons.equals("Union")
                             || cons.equals("Inf") || cons.equals("Sup")){
                         extra = temp.split(" ")[3];
                         extra = extra.substring(0, extra.length() - 1);
                     }
                     if(cons.equals("BoundedDiff")){
-                        buf = buf.append("int" + fromNum + ' ' + cons + " [" + extra + "] int" + toNum + ";");
+                        buf = buf.append(from + ' ' + cons + " [" + extra + "] " + to + ";");
                     }
                     else if(cons.equals("Union") || cons.equals("Inf") || cons.equals("Sup")){
-                        buf = buf.append(extra + " = int" + fromNum + ' ' + cons + " int" + toNum + ";");
+                        buf = buf.append(extra + " = " + from + ' ' + cons + " " + to + ";");
                     }
-                    else buf = buf.append("int" + fromNum + ' ' + cons + ' ' + "int" + toNum + ';');
+                    else buf = buf.append(from + ' ' + cons + ' ' + to + ';');
                     buf = buf.append(System.getProperty("line.separator"));
                 }
             }
