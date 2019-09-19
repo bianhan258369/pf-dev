@@ -545,7 +545,7 @@ public class ClientController extends Cors{
         JSONObject resultJson = new JSONObject();
         Z3Util z3Util = new Z3Util(timeout, path + "/constraints.myccsl",b, pb, dl, p);
         z3Util.exportSMT(path);
-        String command = "z3 constraints.smt";
+        String command = "z3 constraints.smt2";
         String result = "";
         try {
             Process process = Runtime.getRuntime().exec(command);

@@ -181,7 +181,7 @@ public class Z3Util {
                 }
             }
         }
-        writFile( path + "/constraints.smt",res);
+        writFile( path + "/constraints.smt2",res);
     }
 
     public String trace(){
