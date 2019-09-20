@@ -19,8 +19,8 @@ public abstract class ToCommonFormat {
     protected static String fileSeparator = System.getProperty("file.separator");
     // process the ToNuSMVFormat/ToMyCCLFormat Exception
     protected static StringBuilder exception = new StringBuilder();
-    protected static final String[] str = {"Union","Boundeddiff","StrictPre","Coincidence","Alternate",
-            "Exclusion","Cause" };
+    protected static final String[] str = {"Union","BoundedDiff","StrictPre","Coincidence","Alternate",
+            "Exclusion","Cause","Delay","Sup","Inf" };
     // All clock keyWordsString to ArrayList<String>
     protected static final List<String> clockKws = Arrays.asList(str);
     // Store All Clock Phenomena

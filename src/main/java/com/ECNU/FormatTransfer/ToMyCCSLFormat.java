@@ -49,6 +49,10 @@ public class ToMyCCSLFormat extends ToCommonFormat{
                 fw.write(splitList[0] + "=");
                 fw.write(splitList[2] + "∨" + splitList[4] + lineSeparator);
             }
+            else if(kw.equals("Delay")){
+                fw.write(splitList[0] + "=");
+                fw.write(splitList[2] + "$" + splitList[4] + lineSeparator);
+            }
             else if (kw.equals("BoundedDiff")) {
                 String tmpStr = splitList[2].substring(1,splitList[2].length()-1);
                 String downBound = "0";

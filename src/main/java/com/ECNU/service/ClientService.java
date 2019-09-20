@@ -2660,10 +2660,10 @@ public class ClientService implements Serializable{
             return true;
         }
         else if(cons.equals("BoundedDiff")){
-            if(Integer.parseInt(boundedFrom) > 0){
+            if(Double.parseDouble(boundedFrom) > 0){
                 return canAddConstraint(path, index, from, to, "StrictPre",null, null);
             }
-            else if(Integer.parseInt(boundedTo) < 0){
+            else if(Double.parseDouble(boundedTo) < 0){
                 return canAddConstraint(path, index, to, from, "StrictPre",null, null);
             }
         }
@@ -3321,6 +3321,10 @@ public class ClientService implements Serializable{
         JSONObject newClockConstraints = new JSONObject();
         String result = "{\"constraints\":\"";
         File file = new File(path);
+        if(!file.exists()){
+            result = result + "NotExist" + "\"}";
+            return result;
+        }
         SAXReader saxReader = new SAXReader();
         Document project = saxReader.read(file);
         Element rootElement = project.getRootElement();

@@ -343,7 +343,8 @@ public class ClientController extends Cors{
 //                    String toNum = temp.substring(3 + temp.lastIndexOf("int"),temp.lastIndexOf("state"));
                     String cons = constraint[1];
                     if(cons.equals("BoundedDiff") || cons.equals("Union")
-                            || cons.equals("Inf") || cons.equals("Sup")){
+                            || cons.equals("Inf") || cons.equals("Sup")
+                            || cons.equals("Delay")){
                         extra = temp.split(" ")[3];
                         extra = extra.substring(0, extra.length() - 1);
                     }
@@ -352,6 +353,9 @@ public class ClientController extends Cors{
                     }
                     else if(cons.equals("Union") || cons.equals("Inf") || cons.equals("Sup")){
                         buf = buf.append(extra + " = " + from + ' ' + cons + " " + to + ";");
+                    }
+                    else if(cons.equals("Delay")){
+                        buf = buf.append(from + " = " + to + ' ' + cons + ' ' + extra + ";");
                     }
                     else buf = buf.append(from + ' ' + cons + ' ' + to + ';');
                     buf = buf.append(System.getProperty("line.separator"));
@@ -568,7 +572,8 @@ public class ClientController extends Cors{
         JSONObject resultJson = new JSONObject();
         Z3Util z3Util = new Z3Util(timeout, path + "/constraints.myccsl",b, pb, dl, p);
         z3Util.exportSMT(path);
-        String command = "z3 constraints.smt2";
+        //String command = "z3 constraints.smt2";
+        String command = "z3 " + path + "/constraints.smt2";
         String result = "";
         try {
             Process process = Runtime.getRuntime().exec(command);
@@ -593,7 +598,9 @@ public class ClientController extends Cors{
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        result = result.substring(0,result.indexOf(" "));
+        System.out.println(result);
+        if(result.contains("unsat"))result = "unsat";
+        else result = "sat";
         resultJson.put("result",result);
         return resultJson;
     }
