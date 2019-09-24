@@ -311,7 +311,7 @@ public class GitUtil {
     }
 
     // rollback to a specified version
-    public static void rollback(String branchName, String directoryName, String rollBackDirectoryName, String rollbackDate, List<VersionInfo> versions) throws IOException, GitAPIException {
+    public static void rollback(String branchName, String directoryName, String rollbackDate, List<VersionInfo> versions) throws IOException, GitAPIException {
         try (Repository repository = getRepository(directoryName)){
             try (Git git = new Git(repository)) {
                 if(versions != null) {

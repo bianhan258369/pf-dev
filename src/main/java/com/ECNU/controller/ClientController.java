@@ -38,17 +38,21 @@ import java.util.*;
 public class ClientController extends Cors{
     @Autowired
     ClientService clientService;
-    private final String ROOTADDRESS = "E:/JavaProject/pf-dev/GitRepository/";
-    //private final String ROOTADDRESS = "/root/PF/Project/";
+    //private final String ROOTADDRESS = "E:/JavaProject/pf-dev/GitRepository/";
+    private final String ROOTADDRESS = "/root/PF/Project/";
 
-    private List<VersionInfo> searchVersionInfo(String project, String branch){
+    private List<VersionInfo> searchVersionInfo(String branch){
         List<VersionInfo> versions = new ArrayList<VersionInfo>();
+        try {
+            GitUtil.gitCheckout(branch, ROOTADDRESS);
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        String command = "git reflog " + branch;
+        File check = new File(ROOTADDRESS);
+
         List<String> vs = new ArrayList<String>();
-        System.out.println(project);
-        String command = "git reflog " + project + "/";
-        String dir = ROOTADDRESS;
-        File check = new File(dir);
-//  String newVersion = null;
         String commitVersion = null;
         try {
             Process p1 = Runtime.getRuntime().exec(command,null,check);
@@ -56,12 +60,9 @@ public class ClientController extends Cors{
             String s;
 
             while ((s = br.readLine()) != null) {
-                System.out.println(s + "--------------------");
                 if(s.indexOf("commit") != -1) {
-//           newVersion = s.substring(0, 7);
                     commitVersion = s.split(" ")[0];
                     vs.add(commitVersion);
-//           break;
                 }
 
             }
@@ -87,7 +88,6 @@ public class ClientController extends Cors{
                         time = str.substring(0, str.length() - 6);
                         str = br.readLine();
                         String value = br.readLine().split("0")[0];
-                        System.out.println(value);
                         if(value.indexOf("upload") != -1) {
                             if(value.indexOf("uploadproject") != -1) {
                                 continue;
@@ -101,6 +101,9 @@ public class ClientController extends Cors{
                                 continue;
                             }
                         }
+                        if(value.indexOf("download") != -1) {
+                            continue;
+                        }
                         VersionInfo version = new VersionInfo();
                         version.setVersionId(versionId);
                         version.setTime(time);
@@ -113,13 +116,15 @@ public class ClientController extends Cors{
                 e.printStackTrace();
             }
         }
+
         return versions;
     }
 
-    private List<String> searchVersion(String project, String branch) {
+
+    private List<String> searchVersion(String branch) {
         // TODO Auto-generated method stub
         List<String> projectVersions = new ArrayList<String>();
-        List<VersionInfo> versions = searchVersionInfo(project, branch);
+        List<VersionInfo> versions = searchVersionInfo(branch);
         if(versions != null) {
             for(VersionInfo version: versions) {
                 projectVersions.add(version.getTime());
@@ -131,7 +136,7 @@ public class ClientController extends Cors{
     @CrossOrigin
     @RequestMapping("/upload")
     public String upload(@RequestParam("uploadedFiles") MultipartFile files,String folderName) throws Exception {
-        String branch = "test";
+        String branch = folderName;
         File file = new File(ROOTADDRESS);
         if(!file.exists()){
             try {
@@ -147,12 +152,7 @@ public class ClientController extends Cors{
         try {
             GitUtil.gitCheckout(branch,ROOTADDRESS);
             GitUtil.currentBranch(ROOTADDRESS);
-            File folder = new File(ROOTADDRESS + folderName);
-            if(!folder.exists()){
-                folder.mkdir();
-                GitUtil.RecordUploadProjAt("uploadproject",ROOTADDRESS, ".");
-            }
-            BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(ROOTADDRESS + folderName + "/" + files.getOriginalFilename()));
+            BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(ROOTADDRESS + files.getOriginalFilename()));
             outputStream.write(files.getBytes());
             outputStream.flush();
             outputStream.close();
@@ -165,10 +165,9 @@ public class ClientController extends Cors{
 
     @CrossOrigin
     @GetMapping("/downloadMyCCSLFile")
-    public void download(String path) throws Exception {
+    public void downloadMyCCSLFile() throws Exception {
         ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
         HttpServletResponse response = servletRequestAttributes.getResponse();
-        String branch = "test";
         File repositoryFile = new File(ROOTADDRESS);
         if(!repositoryFile.exists()){
             try {
@@ -178,16 +177,7 @@ public class ClientController extends Cors{
                 e.printStackTrace();
             }
         }
-        if(!GitUtil.branchNameExist(branch,ROOTADDRESS)){
-            GitUtil.createBranch(branch, ROOTADDRESS);
-        }
-        try {
-            GitUtil.gitCheckout(branch,ROOTADDRESS);
-            GitUtil.currentBranch(ROOTADDRESS);
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-        String filePath = path + "/constraints.myccsl";
+        String filePath = ROOTADDRESS + "constraints.myccsl";
         System.out.println(filePath);
         File file = new File(filePath);
         if(file.exists()){
@@ -229,7 +219,7 @@ public class ClientController extends Cors{
 
     @CrossOrigin
     @GetMapping("/downloadMyCCSLTool")
-    public void downloadMyCCSL() throws IOException {
+    public void downloadMyCCSLTool() throws IOException {
         ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
         HttpServletResponse response = servletRequestAttributes.getResponse();
         //String filePath = "MyCCSL/MyCCSL.zip";
@@ -274,7 +264,7 @@ public class ClientController extends Cors{
 
     @CrossOrigin
     @GetMapping("/saveConstraintsTxtAndXMLAndMyCCSL")
-    public void saveConstraintsTxtAndXMLAndMyCCSL(String path, String constraints,String addedConstraints) throws Exception {
+    public void saveConstraintsTxtAndXMLAndMyCCSL(String branch,String constraints,String addedConstraints) throws Exception {
         File file = new File(ROOTADDRESS);
         if(!file.exists()){
             try {
@@ -285,8 +275,8 @@ public class ClientController extends Cors{
             }
         }
         try {
-            GitUtil.currentBranch(ROOTADDRESS);
-            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path + "/constraints.txt"));
+            GitUtil.gitCheckout(branch, ROOTADDRESS);
+            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(ROOTADDRESS + "constraints.txt"));
             Document document = DocumentHelper.createDocument();
             Element root=document.addElement("AddedConstraints");
             OutputFormat format = OutputFormat.createPrettyPrint();
@@ -308,7 +298,7 @@ public class ClientController extends Cors{
             }
             Writer out;
             try {
-                out = new FileWriter(path + "/addedConstraints.xml");
+                out = new FileWriter(ROOTADDRESS + "addedConstraints.xml");
                 XMLWriter writer = new XMLWriter(out, format);
                 writer.write(document);
                 writer.close();
@@ -319,7 +309,7 @@ public class ClientController extends Cors{
 
             //修改txt中的addedConstraint
             String temp = "";
-            File txtFile = new File(path + "/constraints.txt");
+            File txtFile = new File(ROOTADDRESS + "constraints.txt");
             FileInputStream fis = new FileInputStream(txtFile);
             InputStreamReader isr = new InputStreamReader(fis);
             BufferedReader br = new BufferedReader(isr);
@@ -370,8 +360,8 @@ public class ClientController extends Cors{
 
             String txtFileName =  "constraints.txt";
             String smvFileName = "constraints";
-            clientService.toMyCCSLFormat(txtFileName, smvFileName, path,5);
-            GitUtil.RecordUploadProjAt("upload",ROOTADDRESS, ".");
+            clientService.toMyCCSLFormat(txtFileName, smvFileName, ROOTADDRESS,5);
+            GitUtil.RecordUploadProjAt("save",ROOTADDRESS, ".");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -380,200 +370,200 @@ public class ClientController extends Cors{
 
     @CrossOrigin
     @GetMapping("/getPhenomenonList")
-    public Object getPhenomenonList(String path, int index) throws DocumentException{
+    public Object getPhenomenonList(int index) throws DocumentException{
 //        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
 //        HttpServletRequest request = servletRequestAttributes.getRequest();
 //        String ip = IPUtil.getIpAddress(request);
 //        ip = ip.replace(':','-');
 //        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.getPhenomenonList(path + "/Project.xml", index);
+        return clientService.getPhenomenonList(ROOTADDRESS + "Project.xml", index);
     }
 
     @CrossOrigin
     @GetMapping("/getDiagramCount")
-    public Object getDiagramCount(String path) throws DocumentException {
+    public Object getDiagramCount() throws DocumentException {
 //        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
 //        HttpServletRequest request = servletRequestAttributes.getRequest();
 //        String ip = IPUtil.getIpAddress(request);
 //        ip = ip.replace(':','-');
 //        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.getDiagramCount(path + "/Project.xml");
+        return clientService.getDiagramCount(ROOTADDRESS + "Project.xml");
     }
 
 
     @CrossOrigin
     @GetMapping("/getRectList")
-    public Object getRectList(String path, int index) throws DocumentException{
+    public Object getRectList(int index) throws DocumentException{
 //        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
 //        HttpServletRequest request = servletRequestAttributes.getRequest();
 //        String ip = IPUtil.getIpAddress(request);
 //        ip = ip.replace(':','-');
 //        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.getRectList(path + "/Project.xml", index);
+        return clientService.getRectList(ROOTADDRESS + "Project.xml", index);
     }
 
     @CrossOrigin
     @GetMapping("/getLineList")
-    public Object getLineList(String path, int index) throws DocumentException{
+    public Object getLineList(int index) throws DocumentException{
 //        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
 //        HttpServletRequest request = servletRequestAttributes.getRequest();
 //        String ip = IPUtil.getIpAddress(request);
 //        ip = ip.replace(':','-');
 //        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.getLineList(path + "/Project.xml", index);
+        return clientService.getLineList(ROOTADDRESS + "Project.xml", index);
     }
 
     @CrossOrigin
     @GetMapping("/getOvalList")
-    public Object getOvalList(String path, int index) throws DocumentException{
+    public Object getOvalList(int index) throws DocumentException{
 //        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
 //        HttpServletRequest request = servletRequestAttributes.getRequest();
 //        String ip = IPUtil.getIpAddress(request);
 //        ip = ip.replace(':','-');
 //        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.getOvalList(path + "/Project.xml", index);
+        return clientService.getOvalList(ROOTADDRESS + "Project.xml", index);
     }
 
     @CrossOrigin
     @GetMapping("/getScenarioList")
-    public Object getScenarioList(String path, int index) throws DocumentException{
+    public Object getScenarioList(int index) throws DocumentException{
 //        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
 //        HttpServletRequest request = servletRequestAttributes.getRequest();
 //        String ip = IPUtil.getIpAddress(request);
 //        ip = ip.replace(':','-');
 //        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.getScenarioList(path + "/Project.xml", index);
+        return clientService.getScenarioList(ROOTADDRESS + "Project.xml", index);
     }
 
     @CrossOrigin
     @GetMapping("/getInteractionList")
-    public Object getInteractionList(String path, int index) throws DocumentException{
+    public Object getInteractionList(int index) throws DocumentException{
 //        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
 //        HttpServletRequest request = servletRequestAttributes.getRequest();
 //        String ip = IPUtil.getIpAddress(request);
 //        ip = ip.replace(':','-');
 //        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.getInteractionList(path + "/Project.xml", index);
+        return clientService.getInteractionList(ROOTADDRESS + "Project.xml", index);
     }
 
     @CrossOrigin
     @GetMapping("/getSubProblemDiagramList")
-    public Object getSubProblemDiagramList(String path) throws DocumentException{
+    public Object getSubProblemDiagramList() throws DocumentException{
 //        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
 //        HttpServletRequest request = servletRequestAttributes.getRequest();
 //        String ip = IPUtil.getIpAddress(request);
 //        ip = ip.replace(':','-');
 //        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.getSubProblenDiagramList(path + "/Project.xml");
+        return clientService.getSubProblenDiagramList(ROOTADDRESS + "Project.xml");
     }
 
     @CrossOrigin
     @GetMapping("/getScenarioDiagramList")
-    public Object getScenarioDiagramList(String path) throws DocumentException{
+    public Object getScenarioDiagramList() throws DocumentException{
 //        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
 //        HttpServletRequest request = servletRequestAttributes.getRequest();
 //        String ip = IPUtil.getIpAddress(request);
 //        ip = ip.replace(':','-');
 //        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.getScenarioDiagramList(path + "/Project.xml");
+        return clientService.getScenarioDiagramList(ROOTADDRESS + "Project.xml");
     }
 
     @CrossOrigin
     @GetMapping("/getDiagramList")
-    public Object getDiagramList(String path) throws DocumentException{
+    public Object getDiagramList() throws DocumentException{
 //        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
 //        HttpServletRequest request = servletRequestAttributes.getRequest();
 //        String ip = IPUtil.getIpAddress(request);
 //        ip = ip.replace(':','-');
 //        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.getDiagramList(path + "/Project.xml");
+        return clientService.getDiagramList(ROOTADDRESS + "Project.xml");
     }
 
     @CrossOrigin
     @GetMapping("/getOWLConstraintList")
-    public Object getOWLConstraintList(String path) throws DocumentException, FileNotFoundException {
+    public Object getOWLConstraintList() throws DocumentException, FileNotFoundException {
 //        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
 //        HttpServletRequest request = servletRequestAttributes.getRequest();
 //        String ip = IPUtil.getIpAddress(request);
 //        ip = ip.replace(':','-');
 //        String xmlPath = "asset/" + ip + "/" + "Project.xml";
 //        String owlPath = "asset/" + ip + "/" + "environment.owl";
-        return clientService.getOWLConstraints(path + "/Project.xml", path + "/environment.owl");
+        return clientService.getOWLConstraints(ROOTADDRESS + "Project.xml", ROOTADDRESS + "environment.owl");
     }
 
     @CrossOrigin
     @GetMapping("/getAllPhenomenonList")
-    public Object getAllPhenomenonList(String path) throws DocumentException, FileNotFoundException {
+    public Object getAllPhenomenonList() throws DocumentException, FileNotFoundException {
 //        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
 //        HttpServletRequest request = servletRequestAttributes.getRequest();
 //        String ip = IPUtil.getIpAddress(request);
 //        ip = ip.replace(':','-');
 //        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.getAllPhenomenonList(path + "/Project.xml");
+        return clientService.getAllPhenomenonList(ROOTADDRESS + "Project.xml");
     }
     @CrossOrigin
     @GetMapping("/getAllReferenceList")
-    public Object getAllReferenceList(String path) throws DocumentException, FileNotFoundException {
+    public Object getAllReferenceList() throws DocumentException, FileNotFoundException {
 //        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
 //        HttpServletRequest request = servletRequestAttributes.getRequest();
 //        String ip = IPUtil.getIpAddress(request);
 //        ip = ip.replace(':','-');
 //        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.getAllReferenceList(path + "/Project.xml");
+        return clientService.getAllReferenceList(ROOTADDRESS + "Project.xml");
     }
 
     @CrossOrigin
     @GetMapping("/getScenarioDiagramByDomain")
-    public Object getScenarioDiagramByDomain(String path, int index, String domainText) throws DocumentException, FileNotFoundException {
+    public Object getScenarioDiagramByDomain(int index, String domainText) throws DocumentException, FileNotFoundException {
 //        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
 //        HttpServletRequest request = servletRequestAttributes.getRequest();
 //        String ip = IPUtil.getIpAddress(request);
 //        ip = ip.replace(':','-');
 //        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.getScenarioDiagramByDomain(path + "/Project.xml", index, domainText);
+        return clientService.getScenarioDiagramByDomain(ROOTADDRESS + "Project.xml", index, domainText);
     }
 
     @CrossOrigin
     @GetMapping("/canAddConstraint")
-    public Object canAddConstraint(String path, int index, String from, String cons, String to, String boundedFrom, String boundedTo) throws DocumentException {
+    public Object canAddConstraint(int index, String from, String cons, String to, String boundedFrom, String boundedTo) throws DocumentException {
 //        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
 //        HttpServletRequest request = servletRequestAttributes.getRequest();
 //        String ip = IPUtil.getIpAddress(request);
 //        ip = ip.replace(':','-');
 //        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.canAddConstraint(path + "/Project.xml", index, from, to, cons ,boundedFrom, boundedTo);
+        return clientService.canAddConstraint(ROOTADDRESS + "Project.xml", index, from, to, cons ,boundedFrom, boundedTo);
     }
 
     @CrossOrigin
     @GetMapping("/ruleBasedCheck")
-    public String ruleBasedCheck(String path) throws DocumentException {
+    public String ruleBasedCheck() throws DocumentException {
 //        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
 //        HttpServletRequest request = servletRequestAttributes.getRequest();
 //        String ip = IPUtil.getIpAddress(request);
 //        ip = ip.replace(':','-');
 //        String path = "asset/" + ip + "/" + "Project.xml";
-        return clientService.ruleBasedCheck(path + "/Project.xml");
+        return clientService.ruleBasedCheck(ROOTADDRESS + "Project.xml");
     }
 
     @CrossOrigin
     @GetMapping("/loadConstraintsXML")
-    public String loadConstraintsXML(String path) throws DocumentException{
+    public String loadConstraintsXML() throws DocumentException{
 //        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
 //        HttpServletRequest request = servletRequestAttributes.getRequest();
 //        String ip = IPUtil.getIpAddress(request);
 //        ip = ip.replace(':','-');
 //        String path = "asset/" + ip + "/" + "addedConstraints.xml";
-        return clientService.loadConstraintsXML(path + "/addedConstraints.xml");
+        return clientService.loadConstraintsXML(ROOTADDRESS + "addedConstraints.xml");
     }
 
     @CrossOrigin
     @GetMapping("/z3Check")
-    public Object z3Check(String path, int timeout, int b, int pb, boolean dl, boolean p) throws Exception{
+    public Object z3Check(int timeout, int b, int pb, boolean dl, boolean p) throws Exception{
         JSONObject resultJson = new JSONObject();
-        Z3Util z3Util = new Z3Util(timeout, path + "/constraints.myccsl",b, pb, dl, p);
-        z3Util.exportSMT(path);
+        Z3Util z3Util = new Z3Util(timeout, ROOTADDRESS + "constraints.myccsl",b, pb, dl, p);
+        z3Util.exportSMT(ROOTADDRESS);
         //String command = "z3 constraints.smt2";
-        String command = "z3 " + path + "/constraints.smt2";
+        String command = "z3 " + ROOTADDRESS + "constraints.smt2";
         String result = "";
         try {
             Process process = Runtime.getRuntime().exec(command);
@@ -622,37 +612,37 @@ public class ClientController extends Cors{
         while(it.hasNext()){
             String branch = it.next().toString();
             branch = branch.substring(branch.lastIndexOf("/") + 1);
-            result.accumulate("branchlist",branch);
+            if(!branch.equals("master")) result.accumulate("branchlist",branch);
         }
         return result;
     }
 
-    @CrossOrigin
-    @GetMapping("/showFolderList")
-    public Object showFolderList(String branch) throws IOException, GitAPIException {
-        JSONObject result = new JSONObject();
-        try{
-            GitUtil.gitCheckout(branch,ROOTADDRESS);
-            File root = new File(ROOTADDRESS);
-            File[] folders = root.listFiles();
-            for(int i = 0;i < folders.length;i++){
-                if(folders[i].isDirectory()){
-                    if(!folders[i].getName().equals(".git")) result.accumulate("folderlist",folders[i].getName());
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return result;
-    }
+//    @CrossOrigin
+//    @GetMapping("/showFolderList")
+//    public Object showFolderList(String branch) throws IOException, GitAPIException {
+//        JSONObject result = new JSONObject();
+//        try{
+//            GitUtil.gitCheckout(branch,ROOTADDRESS);
+//            File root = new File(ROOTADDRESS);
+//            File[] folders = root.listFiles();
+//            for(int i = 0;i < folders.length;i++){
+//                if(folders[i].isDirectory()){
+//                    if(!folders[i].getName().equals(".git")) result.accumulate("folderlist",folders[i].getName());
+//                }
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return result;
+//    }
 
     @CrossOrigin
     @GetMapping("/showVersionList")
-    public Object showVersionList(String branch, String folderName) throws IOException, GitAPIException {
+    public Object showVersionList(String branch) throws IOException, GitAPIException {
         JSONObject result = new JSONObject();
         try{
             GitUtil.gitCheckout(branch,ROOTADDRESS);
-            List<String> versions = searchVersion(folderName, branch);
+            List<String> versions = searchVersion(branch);
             System.out.println(versions.size());
             for(int i = 0;i < versions.size();i++){
                 result.accumulate("versionlist",versions.get(i));
@@ -664,23 +654,32 @@ public class ClientController extends Cors{
     }
 
     @CrossOrigin
-    @GetMapping("/gitChange")
-    public Object gitChange(String branch) throws Exception {
+    @GetMapping("/gitCheckout")
+    public Object gitCheckout(String branch) throws Exception {
         JSONObject result = new JSONObject();
         GitUtil.gitCheckout(branch, ROOTADDRESS);
         result.put("state","Success");
         return result;
     }
 
+    @CrossOrigin
+    @GetMapping("/getCurrentBranch")
+    public Object getCurrentBranch() throws Exception{
+        JSONObject result = new JSONObject();
+        String res = GitUtil.currentBranch(ROOTADDRESS);
+        result.put("branch",res);
+        return result;
+    }
+
 
     @CrossOrigin
     @GetMapping("/gitRollBack")
-    public Object gitRollBack(String branch, String folderName, String version) throws Exception{
+    public Object gitRollBack(String branch, String version) throws Exception{
         JSONObject result = new JSONObject();
-        List<VersionInfo> versions = searchVersionInfo(folderName, branch);
+        List<VersionInfo> versions = searchVersionInfo(branch);
         try {
             GitUtil.gitCheckout(branch, ROOTADDRESS);
-            GitUtil.rollback(branch, ROOTADDRESS, folderName, version, versions);
+            GitUtil.rollback(branch, ROOTADDRESS, version, versions);
             result.put("state","Success");
         } catch (Exception e){
             e.printStackTrace();
@@ -694,7 +693,52 @@ public class ClientController extends Cors{
         ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
         HttpServletResponse response = servletRequestAttributes.getResponse();
         //String filePath = "MyCCSL/MyCCSL.zip";
-        String filePath = "/root/PF/tool/CaseTool.zip";
+        String filePath = "/root/PF/tool/Case_Tool.zip";
+        File file = new File(filePath);
+        if(file.exists()){
+            response.setContentType("application/force-download");// 设置强制下载不打开
+            response.setHeader("Content-Disposition", "attachment;fileName="+ new String(filePath.getBytes("GB2312"),"ISO-8859-1"));
+            byte[] buffer = new byte[1024];
+            FileInputStream fis = null;
+            BufferedInputStream bis = null;
+            try {
+                fis = new FileInputStream(file);
+                bis = new BufferedInputStream(fis);
+                OutputStream os = response.getOutputStream();
+                int i = bis.read(buffer);
+                while (i != -1) {
+                    os.write(buffer, 0, i);
+                    i = bis.read(buffer);
+                }
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+            finally {
+                if (bis != null) {
+                    try {
+                        bis.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (fis != null) {
+                    try {
+                        fis.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
+
+    @CrossOrigin
+    @GetMapping("/downloadProjects")
+    public void downloadProjects() throws IOException {
+        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+        HttpServletResponse response = servletRequestAttributes.getResponse();
+        //String filePath = "MyCCSL/MyCCSL.zip";
+        String filePath = "/root/PF/Download/Projects4Download/Projects.zip";
         File file = new File(filePath);
         if(file.exists()){
             response.setContentType("application/force-download");// 设置强制下载不打开

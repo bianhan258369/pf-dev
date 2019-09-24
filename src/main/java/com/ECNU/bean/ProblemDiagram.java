@@ -289,8 +289,8 @@ public class ProblemDiagram implements Serializable {
     }
 
     public static String getFilePath(String path){
-        int index = path.lastIndexOf('\\');
-        //int index = path.lastIndexOf('/');
+        //int index = path.lastIndexOf('\\');
+        int index = path.lastIndexOf('/');
         String result = path.substring(0,index+1);
         return result;
     }

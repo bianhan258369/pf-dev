@@ -2936,10 +2936,11 @@ public class ClientService implements Serializable{
         LinkedList<Interaction> jiaohu = new LinkedList<>();
 
         Rect domain = null;
+        System.out.println(domainText);
         for(int i = 0;i < problemDiagram.getProblemDomains().size();i++){
             Rect rect = (Rect) problemDiagram.getProblemDomains().get(i);
-            //System.out.println(rect.getText());
-            if(rect.getText().equals(domainText)) domain = rect;
+            System.out.println(rect.getText());
+            if(rect.getText().replace("&#x000A","").equals(domainText)) domain = rect;
         }
         //System.out.println(domainText);
         //this.problemDiagram = Main.win.subProblemDiagrams[index];
@@ -3351,7 +3352,8 @@ public class ClientService implements Serializable{
                 }
                 else result = result + to;
                 if(cons.equals("Union") || cons.equals("Inf")
-                        || cons.equals("Sup") || cons.equals("BoundedDiff")){
+                        || cons.equals("Sup") || cons.equals("BoundedDiff")
+                        || cons.equals("Delay")){
                     extra = constraint.split(" ")[3];
                     result = result + " " + extra + "/";
                 }
