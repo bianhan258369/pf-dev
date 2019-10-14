@@ -194,7 +194,7 @@ public class ProblemDiagram implements Serializable {
                 for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
                     tempPhenomenon = (Element)j.next();
                     String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
-                    String phenomenonState = tempPhenomenon.attributeValue("phenomentn_type");
+                    String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
                     String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
                     String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
                     int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_requirement"));
@@ -249,7 +249,7 @@ public class ProblemDiagram implements Serializable {
                 for(Iterator j = temp.elementIterator("Phenomenon");j.hasNext();){
                     tempPhenomenon = (Element)j.next();
                     String phenomenonName = tempPhenomenon.attributeValue("phenomenon_name");
-                    String phenomenonState = tempPhenomenon.attributeValue("phenomentn_type");
+                    String phenomenonState = tempPhenomenon.attributeValue("phenomenon_type");
                     String phenomenonFrom = tempPhenomenon.attributeValue("phenomenon_from");
                     String phenomenonTo = tempPhenomenon.attributeValue("phenomenon_to");
                     int pehnomenonRequirementBiaohao = Integer.parseInt(tempPhenomenon.attributeValue("phenomenon_requirement"));
@@ -289,8 +289,8 @@ public class ProblemDiagram implements Serializable {
     }
 
     public static String getFilePath(String path){
-        //int index = path.lastIndexOf('\\');
-        int index = path.lastIndexOf('/');
+        int index = path.lastIndexOf('\\');
+        //int index = path.lastIndexOf('/');
         String result = path.substring(0,index+1);
         return result;
     }

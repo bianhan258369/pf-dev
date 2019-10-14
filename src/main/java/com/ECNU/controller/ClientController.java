@@ -38,8 +38,8 @@ import java.util.*;
 public class ClientController extends Cors{
     @Autowired
     ClientService clientService;
-    //private final String ROOTADDRESS = "E:/JavaProject/pf-dev/GitRepository/";
-    private final String ROOTADDRESS = "/root/PF/Project/";
+    private final String ROOTADDRESS = "E:/JavaProject/pf-dev/GitRepository/";
+    //private final String ROOTADDRESS = "/root/PF/Project/";
 
     private List<VersionInfo> searchVersionInfo(String branch){
         List<VersionInfo> versions = new ArrayList<VersionInfo>();
